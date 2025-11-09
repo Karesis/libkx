@@ -4,28 +4,14 @@ import subprocess
 from pathlib import Path
 import os
 
-# -----------------------------------------------------------------
-# [!!] 配置: 与你其他脚本保持一致
-# -----------------------------------------------------------------
-
 # 要扫描的文件夹
 DIRS_TO_SCAN = ["src", "include", "tests"]
 
 # 目标文件扩展名
 TARGET_EXTS = {".c", ".h"}
 
-# -----------------------------------------------------------------
-# [!!] 要排除的第三方路径 (与 apply_license.py 保持一致)
-# -----------------------------------------------------------------
 THIRD_PARTY_PATHS = {
-    # xxHash
-    "include/utils/xxhash.h",
-    "src/utils/xxhash.c",
 }
-
-# -----------------------------------------------------------------
-# 核心功能
-# -----------------------------------------------------------------
 
 CLANG_FORMAT_BIN = os.environ.get("CLANG_FORMAT_BIN", "clang-format")
 
@@ -102,9 +88,6 @@ def is_excluded(relative_path_str: str) -> bool:
     return False
 
 def main():
-    """
-    [!!] 这个 main 函数现在与你的 clean_comments.py 的结构一致。
-    """
     check_mode = "--check" in sys.argv
     project_root = Path(__file__).parent.parent
     
