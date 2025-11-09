@@ -41,7 +41,7 @@
  */
 #define TYPE_STR 11 /* 对应 `str` (const char *) */
 #define TYPE_MUT_STR                                       \
-  12                 /* 对应 `char *` (可变 C 字符串)    \
+  12                 /* 对应 `char *` (可变 C 字符串) \
                       */
 #define TYPE_CHAR 13 /* 对应 `char` */
 #define TYPE_ANY 14  /* 对应 `void *` (用于打印指针地址) */
