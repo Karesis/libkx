@@ -83,7 +83,7 @@ typedef enum OptionKind
 
 #define oexpect(opt, msg)                                  \
   ({                                                       \
-    __auto_type __opt_tmp = (opt);                         \
+    auto __opt_tmp = (opt);                                \
     if (ois_none(__opt_tmp))                               \
     {                                                      \
       panic("Failed expectation (expected Some): {}",      \
@@ -98,14 +98,14 @@ typedef enum OptionKind
 
 #define ounwrap_or(opt, default_val)                       \
   ({                                                       \
-    __auto_type __opt_tmp = (opt);                         \
+    auto __opt_tmp = (opt);                                \
     ois_some(__opt_tmp) ? __opt_tmp.value.some             \
                         : (default_val);                   \
   })
 
 #define ounwrap_or_else(opt, func)                         \
   ({                                                       \
-    __auto_type __opt_tmp = (opt);                         \
+    auto __opt_tmp = (opt);                                \
     ois_some(__opt_tmp) ? __opt_tmp.value.some : (func)(); \
   })
 
@@ -118,7 +118,7 @@ typedef enum OptionKind
  */
 #define __OPTION_MAP_PASTE(Out_Name, opt_in, var, ...)     \
   ({                                                       \
-    __auto_type __opt_tmp = (opt_in);                      \
+    auto __opt_tmp = (opt_in);                             \
     (ois_none(__opt_tmp)) ? None(Out_Name) : ({            \
       typeof(__opt_tmp.value.some) var =                   \
         __opt_tmp.value.some;                              \
@@ -136,7 +136,7 @@ typedef enum OptionKind
 #define __OPTION_AND_THEN_PASTE(                           \
   Out_Name, opt_in, var, ...)                              \
   ({                                                       \
-    __auto_type __opt_tmp = (opt_in);                      \
+    auto __opt_tmp = (opt_in);                             \
     (ois_none(__opt_tmp)) ? None(Out_Name) : ({            \
       typeof(__opt_tmp.value.some) var =                   \
         __opt_tmp.value.some;                              \

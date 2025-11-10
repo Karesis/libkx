@@ -16,7 +16,8 @@
 #include <core/mem/layout.h>    // 布局
 #include <core/mem/sysalc.h>
 #include <core/msg/asrt.h> // asrt!
-#include <core/option.h>   // Option<T>
+#include <core/msg/dbg.h>
+#include <core/option.h> // Option<T>
 #include <core/result.h>
 #include <core/type.h> // 基础类型
 
@@ -51,6 +52,17 @@ hash_fn_str(const str *key)
 static inline bool
 cmp_fn_str(const str *a, const str *b)
 {
+  // --- 新增的 NULL 检查 ---
+  // (假设两个 NULL 键是相等的)
+  if (*a == NULL && *b == NULL)
+  {
+    return true;
+  }
+  // (假设 NULL 不等于任何非 NULL 键)
+  if (*a == NULL || *b == NULL)
+  {
+    return false;
+  }
   return str_cmp(*a, *b) == EQUAL;
 }
 
@@ -396,10 +408,10 @@ cmp_fn_str(const str *a, const str *b)
   /* <<< FIX: 返回类型应该是 Option_T_Name##_V_Ptr, */      \
   /* 而不是 T_Name##_V_Ptr (那只是个宏名字)。     */        \
   static inline Option_##T_Name##_V_Ptr T_Name##_get_ptr(   \
-    T_Name *self, const K_Type *key)                        \
+    T_Name *self, const K_Type key)                         \
   {                                                         \
     T_Name##_FindResult res = T_Name##_find_entry(          \
-      self->entries, self->capacity, key);                  \
+      self->entries, self->capacity, &key);                 \
     if (res.found)                                          \
     {                                                       \
       /* (这里的 Some(T_Name##_V_Ptr,...) 是正确的) */      \
@@ -414,10 +426,10 @@ cmp_fn_str(const str *a, const str *b)
                                                             \
   /** (Public) 获取 V (你的 get) */                         \
   static inline Option_##T_Name##_V T_Name##_get(           \
-    T_Name *self, const K_Type *key)                        \
+    T_Name *self, const K_Type key)                         \
   {                                                         \
     T_Name##_FindResult res = T_Name##_find_entry(          \
-      self->entries, self->capacity, key);                  \
+      self->entries, self->capacity, &key);                 \
     if (res.found)                                          \
     {                                                       \
       return Some(T_Name##_V,                               \
@@ -431,10 +443,10 @@ cmp_fn_str(const str *a, const str *b)
                                                             \
   /** (Public) 删除一个键 (你的 delete) */                  \
   static inline bool T_Name##_delete(T_Name *self,          \
-                                     const K_Type *key)     \
+                                     const K_Type key)      \
   {                                                         \
     T_Name##_FindResult res = T_Name##_find_entry(          \
-      self->entries, self->capacity, key);                  \
+      self->entries, self->capacity, &key);                 \
     if (!res.found)                                         \
     {                                                       \
       return false; /* 未找到 */                            \

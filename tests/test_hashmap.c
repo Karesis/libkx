@@ -2,6 +2,7 @@
 #include <core/option.h>
 #include <std/hashmap.h>
 #include <std/test/test.h>
+
 // 1. 实例化 HashMap "模板"
 DEFINE_HASHMAP(U64Map,
                u64,
@@ -25,7 +26,7 @@ main(void)
   // --- Test 1: Put & Get ---
   U64Map_put(map, 100, 42);
 
-  Option_U64Map_V val = U64Map_get(map, &(u64){100});
+  Option_U64Map_V val = U64Map_get(map, 100);
 
   TEST_ASSERT(ois_some(val), "GET: Key 100 not found");
 
@@ -35,14 +36,14 @@ main(void)
               "Count was not 1 after 1st insert");
 
   // --- Test 2: Get Non-Existent Key ---
-  val = U64Map_get(map, &(u64){200});
+  val = U64Map_get(map, 200);
 
   TEST_ASSERT(ois_none(val),
               "GET: Key 200 was found (should be absent)");
 
   // --- Test 3: Update Value ---
   U64Map_put(map, 100, 999); // 覆盖 key 100
-  val = U64Map_get(map, &(u64){100});
+  val = U64Map_get(map, 100);
 
   TEST_ASSERT(ois_some(val), "UPDATE: Key 100 not found");
   TEST_ASSERT(oexpect(val, "UPDATE: val was None") == 999,
@@ -51,18 +52,18 @@ main(void)
               "Count changed after update (should be 1)");
 
   // --- Test 4: Delete Key ---
-  bool deleted = U64Map_delete(map, &(u64){100});
+  bool deleted = U64Map_delete(map, 100);
   TEST_ASSERT(deleted, "DELETE: Delete returned false");
   TEST_ASSERT(map->count == 0,
               "Count was not 0 after delete");
 
   // 验证它确实被删除了
-  val = U64Map_get(map, &(u64){100});
+  val = U64Map_get(map, 100);
   TEST_ASSERT(ois_none(val),
               "DELETE: Key 100 was found after delete");
 
   // --- Test 5: Delete Non-Existent Key ---
-  deleted = U64Map_delete(map, &(u64){999});
+  deleted = U64Map_delete(map, 999);
   TEST_ASSERT(
     !deleted,
     "DELETE: Deleting non-existent key returned true");
