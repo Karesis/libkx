@@ -46,10 +46,34 @@
  */
 
 /**
- * @brief Bump (Arena) 分配器。
- * 这是一个不透明类型。实现细节在 bump.c 中。
+ * @brief ChunkFooter (内部实现)
+ * (这是 bump.h 中 'typedef struct Bump Bump' 的私有定义)
+ */
+typedef struct ChunkFooter ChunkFooter;
+struct ChunkFooter
+{
+  byte *data;
+  usize chunk_size;
+  ChunkFooter *prev;
+  byte *ptr;
+  usize allocated_bytes;
+};
+
+/**
+ * @brief Bump (内部实现)
  */
 typedef struct Bump Bump;
+struct Bump
+{
+  ChunkFooter *current_chunk_footer;
+  usize allocation_limit;
+  usize min_align;
+  /**
+   * @brief 支撑分配器。
+   * Bump 本身也需要内存，它使用这个分配器来获取 Chunk。
+   */
+  SystemAlloc *backing_alloc;
+};
 
 /**
  * @brief 指向 Bump 的指针 (用于 Option)。

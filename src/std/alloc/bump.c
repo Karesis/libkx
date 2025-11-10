@@ -3,20 +3,22 @@
  *
  * This file is part of libkx.
  *
- * libkx is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * libkx is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General
+ * Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your
+ * option) any later version.
  *
  * libkx is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
+ * but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE.  See the GNU Lesser General Public License for
+ * more details.
  *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU Lesser General
+ * Public License along with this program.  If not, see
+ * <https://www.gnu.org/licenses/>.
  */
-
 
 /*
  * ===================================================================
@@ -47,47 +49,6 @@
  */
 #include <stdlib.h> // (SIZE_MAX)
 #include <string.h> // (memset, memcpy)
-
-/*
- * ===================================================================
- * 2. 内部类型定义 (Private Types)
- * ===================================================================
- */
-
-/**
- * @brief ChunkFooter (内部实现)
- * (这是 bump.h 中 'typedef struct Bump Bump' 的私有定义)
- */
-typedef struct ChunkFooter ChunkFooter;
-struct ChunkFooter
-{
-  byte *data;
-  usize chunk_size;
-  ChunkFooter *prev;
-  byte *ptr;
-  usize allocated_bytes;
-};
-
-/**
- * @brief Bump (内部实现)
- */
-struct Bump
-{
-  ChunkFooter *current_chunk_footer;
-  usize allocation_limit;
-  usize min_align;
-  /**
-   * @brief 支撑分配器。
-   * Bump 本身也需要内存，它使用这个分配器来获取 Chunk。
-   */
-  SystemAlloc *backing_alloc;
-};
-
-/*
- * ===================================================================
- * 3. 辅助功能 (Helpers)
- * ===================================================================
- */
 
 /* --- 对齐和常量 --- */
 
@@ -594,4 +555,12 @@ bump_get_allocated_bytes(const Bump *self)
 {
   asrt_msg(self != NULL, "Bump 'self' cannot be NULL");
   return self->current_chunk_footer->allocated_bytes;
+}
+
+void
+bump_release_impl(Bump *self, anyptr ptr, Layout layout)
+{
+  (void)self;
+  (void)ptr;
+  (void)layout;
 }
