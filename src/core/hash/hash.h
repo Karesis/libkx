@@ -133,7 +133,8 @@
                            * 然后再解引用。          \
                            */                               \
                                                             \
-      u8 *: HASHER_WRITE_U8(hasher_state, *((u8 *)value)),  \
+        u8 *: HASHER_WRITE_U8(hasher_state,                 \
+                              *((u8 *)value)),              \
       const u8 *: HASHER_WRITE_U8(hasher_state,             \
                                   *((const u8 *)value)),    \
       u16 *: HASHER_WRITE_U16(hasher_state,                 \
