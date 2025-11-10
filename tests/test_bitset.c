@@ -17,7 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <core/mem/layout.h> // KIB 宏在概念上属于这里
+#include <core/mem/layout.h>
 #include <core/mem/sysalc.h>
 #include <std/alloc/bump.h>
 #include <std/math/bitset.h>
