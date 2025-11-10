@@ -1,47 +1,13 @@
-/*
- * Copyright (C) 2025 Karesis
- *
- * This file is part of libkx.
- *
- * libkx is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * libkx is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
-
-/*
- * Copyright 2025 Karesis
- * (Apache License Header)
- */
-
 #pragma once
 
-#include <assert.h>           // 引入: assert
-#include <std/debug/option.h> // 引入: oexpect
-#include <std/mem/allocer.h>  // 引入: __VEC_ALLOC_MACRO 等
-#include <std/mem/allocer/bump.h> // 引入: Bump, BUMP 宏
-#include <std/mem/allocer/system.h> // 引入: SystemAlloc, SYSTEM 宏
-#include <std/mem/layout.h> // 引入: LAYOUT_OF, LAYOUT_OF_ARRAY
-#include <std/mem/malloc.h> // 引入: sys_malloc, sys_free
-#include <std/type/cm.h>    // 引入: bool, usize, u64
-#include <string.h>         // 引入: memset, memcpy, memcmp
-
-/*
- * ===================================================================
- * 1. 内部辅助 (不变)
- * ===================================================================
- *
- * (这些辅助函数是内联的, 供下面的模板宏使用)
- */
+#include <core/mem/allocer.h>
+#include <core/mem/layout.h>
+#include <core/mem/sysalc.h>
+#include <core/msg/asrt.h>
+#include <core/option.h>
+#include <core/type.h>
+#include <std/alloc/bump.h>
+#include <string.h>
 
 static inline usize
 bitset_words_for_bits(usize bits)
@@ -52,7 +18,7 @@ bitset_words_for_bits(usize bits)
 static inline usize
 bitset_bit_index(usize bit)
 {
-  return bit >> 6; // bit / 64
+  return bit >> 6;
 }
 
 static inline u64
@@ -61,283 +27,228 @@ bitset_bit_mask(usize bit)
   return (u64)1 << (bit & 63);
 }
 
-/*
- * ===================================================================
- * 2. 核心 Bitset 模板
- * ===================================================================
- *
- * 定义一个 "Bitset 模板", 它遵循 `libkx` 的 "句柄" 模式:
- * 1. 句柄 (struct) 在堆上 (sys_malloc/sys_free)。
- * 2. 数据 (words) 在分配器上
- * (PREFIX_ALLOC/PREFIX_RELEASE)。
- */
-#define DEFINE_BITSET(TypeName, AllocType, AllocPrefix)             \
-                                                                    \
-  /**                                                               \
-   * @brief (模板) Bitset 结构体定义                         \
-   */                                                               \
-  typedef struct TypeName                                           \
-  {                                                                 \
-    usize num_bits;                                                 \
-    usize num_words;                                                \
-    u64 *words;                                                     \
-    AllocType *alloc_state; /*< 强类型分配器指针 */                 \
-  } TypeName;                                                       \
-                                                                    \
-  /**                                                               \
-   * @brief (模板) 创建一个所有位为 0 的 Bitset (空集) \
-   */                                                               \
-  static inline TypeName *TypeName##_create(                        \
-    usize num_bits, AllocType *alloc)                               \
-  {                                                                 \
-    assert(alloc != NULL);                                          \
-    usize num_words = bitset_words_for_bits(num_bits);              \
-    Layout word_layout = LAYOUT_OF_ARRAY(u64, num_words);           \
-                                                                    \
-    /* 1. 句柄在堆上 (libkx 模式) */                                \
-    TypeName *bs = (TypeName *)oexpect(                             \
-      sys_malloc(sizeof(TypeName)),                                 \
-      "Failed to allocate Bitset struct itself");                   \
-                                                                    \
-    /* 2. 数据在分配器上 (清零) */                                  \
-    u64 *words =                                                    \
-      ALLOC_ZEROED(AllocPrefix, alloc, u64, num_words);             \
-                                                                    \
-    if (words == NULL && num_bits > 0)                              \
-    {                                                               \
-      sys_free(bs); /* 分配失败, 清理句柄 */                        \
-      return NULL;                                                  \
-    }                                                               \
-                                                                    \
-    bs->num_bits = num_bits;                                        \
-    bs->num_words = num_words;                                      \
-    bs->words = words;                                              \
-    bs->alloc_state = alloc;                                        \
-    return bs; /* 不变性 (已清零) 成立 */                           \
-  }                                                                 \
-                                                                    \
-  /**                                                               \
-   * @brief (模板) 销毁 Bitset 句柄                           \
-   */                                                               \
-  static inline void TypeName##_destroy(TypeName *bs)               \
-  {                                                                 \
-    if (bs == NULL)                                                 \
-      return;                                                       \
-                                                                    \
-    /* 1. 释放分配器上的数据 (PREFIX_RELEASE) */                    \
-    RELEASE(AllocPrefix,                                            \
-            bs->alloc_state,                                        \
-            u64,                                                    \
-            bs->words,                                              \
-            bs->num_words);                                         \
-                                                                    \
-    /* 2. 释放堆上的句柄 */                                         \
-    sys_free(bs);                                                   \
-  }                                                                 \
-                                                                    \
-  /**                                                               \
-   * @brief (模板) 创建一个所有位为 1 的 Bitset (全集) \
-   */                                                               \
-  static inline TypeName *TypeName##_create_all(                    \
-    usize num_bits, AllocType *alloc)                               \
-  {                                                                 \
-    assert(alloc != NULL);                                          \
-    usize num_words = bitset_words_for_bits(num_bits);              \
-    Layout word_layout = LAYOUT_OF_ARRAY(u64, num_words);           \
-                                                                    \
-    TypeName *bs = (TypeName *)oexpect(                             \
-      sys_malloc(sizeof(TypeName)),                                 \
-      "Failed to allocate Bitset struct itself");                   \
-                                                                    \
-    /* 2. 数据在分配器上 (未初始化) */                              \
-    u64 *words =                                                    \
-      ALLOC(AllocPrefix, alloc, u64, num_words);                    \
-                                                                    \
-    if (words == NULL && num_bits > 0)                              \
-    {                                                               \
-      sys_free(bs);                                                 \
-      return NULL;                                                  \
-    }                                                               \
-                                                                    \
-    bs->num_bits = num_bits;                                        \
-    bs->num_words = num_words;                                      \
-    bs->words = words;                                              \
-    bs->alloc_state = alloc;                                        \
-                                                                    \
-    /* 3. 手动设置为 1 并维护不变性 */                              \
-    memset(bs->words, 0xFF, bs->num_words * sizeof(u64));           \
-    usize remaining_bits = bs->num_bits & 63;                       \
-    if (remaining_bits > 0)                                         \
-    {                                                               \
-      u64 last_mask = ((u64)1 << remaining_bits) - 1;               \
-      bs->words[bs->num_words - 1] &= last_mask;                    \
-    }                                                               \
-    return bs;                                                      \
-  }                                                                 \
-                                                                    \
-  /* --- (所有其他 API 都是通用的, 只需要替换 TypeName)      \
-   * --- */                                                         \
-                                                                    \
-  static inline void TypeName##_set(TypeName *bs,                   \
-                                    usize bit)                      \
-  {                                                                 \
-    assert(bs != NULL && bs->words != NULL);                        \
-    assert(bit < bs->num_bits &&                                    \
-           "Bitset_set: index out of bounds");                      \
-    bs->words[bitset_bit_index(bit)] |=                             \
-      bitset_bit_mask(bit);                                         \
-  }                                                                 \
-                                                                    \
-  static inline void TypeName##_clear(TypeName *bs,                 \
-                                      usize bit)                    \
-  {                                                                 \
-    assert(bs != NULL && bs->words != NULL);                        \
-    assert(bit < bs->num_bits &&                                    \
-           "Bitset_clear: index out of bounds");                    \
-    bs->words[bitset_bit_index(bit)] &=                             \
-      ~bitset_bit_mask(bit);                                        \
-  }                                                                 \
-                                                                    \
-  static inline bool TypeName##_test(const TypeName *bs,            \
-                                     usize bit)                     \
-  {                                                                 \
-    assert(bs != NULL && bs->words != NULL);                        \
-    assert(bit < bs->num_bits &&                                    \
-           "Bitset_test: index out of bounds");                     \
-    return (bs->words[bitset_bit_index(bit)] &                      \
-            bitset_bit_mask(bit)) != 0;                             \
-  }                                                                 \
-                                                                    \
-  static inline void TypeName##_set_all(TypeName *bs)               \
-  {                                                                 \
-    assert(bs != NULL && bs->words != NULL);                        \
-    if (bs->num_words == 0)                                         \
-      return;                                                       \
-    memset(bs->words, 0xFF, bs->num_words * sizeof(u64));           \
-    /* 维护不变性 */                                                \
-    usize remaining_bits = bs->num_bits & 63;                       \
-    if (remaining_bits > 0)                                         \
-    {                                                               \
-      u64 last_mask = ((u64)1 << remaining_bits) - 1;               \
-      bs->words[bs->num_words - 1] &= last_mask;                    \
-    }                                                               \
-  }                                                                 \
-                                                                    \
-  static inline void TypeName##_clear_all(TypeName *bs)             \
-  {                                                                 \
-    assert(bs != NULL && bs->words != NULL);                        \
-    if (bs->num_words == 0)                                         \
-      return;                                                       \
-    memset(bs->words, 0, bs->num_words * sizeof(u64));              \
-  }                                                                 \
-                                                                    \
-  static inline bool TypeName##_equals(                             \
-    const TypeName *bs1, const TypeName *bs2)                       \
-  {                                                                 \
-    assert(bs1 != NULL && bs1->words != NULL);                      \
-    assert(bs2 != NULL && bs2->words != NULL);                      \
-    assert(bs1->num_bits == bs2->num_bits &&                        \
-           "Bitset_equals: mismatched sizes");                      \
-    if (bs1->num_words == 0)                                        \
-      return true;                                                  \
-    return memcmp(bs1->words,                                       \
-                  bs2->words,                                       \
-                  bs1->num_words * sizeof(u64)) == 0;               \
-  }                                                                 \
-                                                                    \
-  static inline void TypeName##_copy(TypeName *dest,                \
-                                     const TypeName *src)           \
-  {                                                                 \
-    assert(dest != NULL && dest->words != NULL);                    \
-    assert(src != NULL && src->words != NULL);                      \
-    assert(dest->num_bits == src->num_bits &&                       \
-           "Bitset_copy: mismatched sizes");                        \
-    if (src->num_words == 0)                                        \
-      return;                                                       \
-    memcpy(dest->words,                                             \
-           src->words,                                              \
-           dest->num_words * sizeof(u64));                          \
-  }                                                                 \
-                                                                    \
-  static inline void TypeName##_intersect(                          \
-    TypeName *dest,                                                 \
-    const TypeName *src1,                                           \
-    const TypeName *src2)                                           \
-  {                                                                 \
-    assert(dest->num_bits == src1->num_bits &&                      \
-           dest->num_bits == src2->num_bits);                       \
-    for (usize i = 0; i < dest->num_words; ++i)                     \
-    {                                                               \
-      dest->words[i] = src1->words[i] & src2->words[i];             \
-    }                                                               \
-  }                                                                 \
-                                                                    \
-  static inline void TypeName##_union(                              \
-    TypeName *dest,                                                 \
-    const TypeName *src1,                                           \
-    const TypeName *src2)                                           \
-  {                                                                 \
-    assert(dest->num_bits == src1->num_bits &&                      \
-           dest->num_bits == src2->num_bits);                       \
-    for (usize i = 0; i < dest->num_words; ++i)                     \
-    {                                                               \
-      dest->words[i] = src1->words[i] | src2->words[i];             \
-    }                                                               \
-  }                                                                 \
-                                                                    \
-  static inline void TypeName##_difference(                         \
-    TypeName *dest,                                                 \
-    const TypeName *src1,                                           \
-    const TypeName *src2)                                           \
-  {                                                                 \
-    assert(dest->num_bits == src1->num_bits &&                      \
-           dest->num_bits == src2->num_bits);                       \
-    for (usize i = 0; i < dest->num_words; ++i)                     \
-    {                                                               \
-      dest->words[i] = src1->words[i] & ~src2->words[i];            \
-    }                                                               \
-  }                                                                 \
-                                                                    \
-  static inline usize TypeName##_count_slow(                        \
-    const TypeName *bs)                                             \
-  {                                                                 \
-    assert(bs != NULL && bs->words != NULL);                        \
-    usize count = 0;                                                \
-    for (usize i = 0; i < bs->num_bits; ++i)                        \
-    {                                                               \
-      if (TypeName##_test(bs, i))                                   \
-      {                                                             \
-        count++;                                                    \
-      }                                                             \
-    }                                                               \
-    return count;                                                   \
+#define DEFINE_BITSET(TypeName, AllocType, AllocPrefix)    \
+                                                           \
+  typedef struct TypeName                                  \
+  {                                                        \
+    usize num_bits;                                        \
+    usize num_words;                                       \
+    u64 *words;                                            \
+    AllocType *alloc_state;                                \
+  } TypeName;                                              \
+                                                           \
+  static inline TypeName *TypeName##_create(               \
+    AllocType *alloc, usize num_bits)                      \
+  {                                                        \
+    asrt(alloc != NULL);                                   \
+    usize num_words = bitset_words_for_bits(num_bits);     \
+    Layout word_layout = LAYOUT_OF_ARRAY(u64, num_words);  \
+                                                           \
+    TypeName *bs = (TypeName *)oexpect(                    \
+      sys_malloc(sizeof(TypeName)),                        \
+      "Failed to allocate Bitset struct itself");          \
+                                                           \
+    u64 *words = ZALLOC(AllocPrefix, alloc, word_layout);  \
+                                                           \
+    if (words == NULL && num_bits > 0)                     \
+    {                                                      \
+      sys_free(bs);                                        \
+      return NULL;                                         \
+    }                                                      \
+                                                           \
+    bs->num_bits = num_bits;                               \
+    bs->num_words = num_words;                             \
+    bs->words = words;                                     \
+    bs->alloc_state = alloc;                               \
+    return bs;                                             \
+  }                                                        \
+                                                           \
+  static inline void TypeName##_destroy(TypeName *bs)      \
+  {                                                        \
+    if (bs == NULL)                                        \
+      return;                                              \
+    Layout word_layout =                                   \
+      LAYOUT_OF_ARRAY(u64, bs->num_words);                 \
+                                                           \
+    RELEASE(AllocPrefix,                                   \
+            bs->alloc_state,                               \
+            bs->words,                                     \
+            word_layout);                                  \
+                                                           \
+    sys_free(bs);                                          \
+  }                                                        \
+                                                           \
+  static inline TypeName *TypeName##_create_all(           \
+    AllocType *alloc, usize num_bits)                      \
+  {                                                        \
+    asrt(alloc != NULL);                                   \
+    usize num_words = bitset_words_for_bits(num_bits);     \
+    Layout word_layout = LAYOUT_OF_ARRAY(u64, num_words);  \
+                                                           \
+    TypeName *bs = (TypeName *)oexpect(                    \
+      sys_malloc(sizeof(TypeName)),                        \
+      "Failed to allocate Bitset struct itself");          \
+                                                           \
+    u64 *words = ALLOC(AllocPrefix, alloc, word_layout);   \
+                                                           \
+    if (words == NULL && num_bits > 0)                     \
+    {                                                      \
+      sys_free(bs);                                        \
+      return NULL;                                         \
+    }                                                      \
+                                                           \
+    bs->num_bits = num_bits;                               \
+    bs->num_words = num_words;                             \
+    bs->words = words;                                     \
+    bs->alloc_state = alloc;                               \
+                                                           \
+    memset(bs->words, 0xFF, bs->num_words * sizeof(u64));  \
+    usize remaining_bits = bs->num_bits & 63;              \
+    if (remaining_bits > 0)                                \
+    {                                                      \
+      u64 last_mask = ((u64)1 << remaining_bits) - 1;      \
+      bs->words[bs->num_words - 1] &= last_mask;           \
+    }                                                      \
+    return bs;                                             \
+  }                                                        \
+                                                           \
+  static inline void TypeName##_set(TypeName *bs,          \
+                                    usize bit)             \
+  {                                                        \
+    asrt(bs != NULL && bs->words != NULL);                 \
+    asrt_msg(bit < bs->num_bits,                           \
+             "Bitset_set: index out of bounds");           \
+    bs->words[bitset_bit_index(bit)] |=                    \
+      bitset_bit_mask(bit);                                \
+  }                                                        \
+                                                           \
+  static inline void TypeName##_clear(TypeName *bs,        \
+                                      usize bit)           \
+  {                                                        \
+    asrt(bs != NULL && bs->words != NULL);                 \
+    asrt_msg(bit < bs->num_bits,                           \
+             "Bitset_clear: index out of bounds");         \
+    bs->words[bitset_bit_index(bit)] &=                    \
+      ~bitset_bit_mask(bit);                               \
+  }                                                        \
+                                                           \
+  static inline bool TypeName##_test(const TypeName *bs,   \
+                                     usize bit)            \
+  {                                                        \
+    asrt(bs != NULL && bs->words != NULL);                 \
+    asrt_msg(bit < bs->num_bits,                           \
+             "Bitset_test: index out of bounds");          \
+    return (bs->words[bitset_bit_index(bit)] &             \
+            bitset_bit_mask(bit)) != 0;                    \
+  }                                                        \
+                                                           \
+  static inline void TypeName##_set_all(TypeName *bs)      \
+  {                                                        \
+    asrt(bs != NULL && bs->words != NULL);                 \
+    if (bs->num_words == 0)                                \
+      return;                                              \
+    memset(bs->words, 0xFF, bs->num_words * sizeof(u64));  \
+    usize remaining_bits = bs->num_bits & 63;              \
+    if (remaining_bits > 0)                                \
+    {                                                      \
+      u64 last_mask = ((u64)1 << remaining_bits) - 1;      \
+      bs->words[bs->num_words - 1] &= last_mask;           \
+    }                                                      \
+  }                                                        \
+                                                           \
+  static inline void TypeName##_clear_all(TypeName *bs)    \
+  {                                                        \
+    asrt(bs != NULL && bs->words != NULL);                 \
+    if (bs->num_words == 0)                                \
+      return;                                              \
+    memset(bs->words, 0, bs->num_words * sizeof(u64));     \
+  }                                                        \
+                                                           \
+  static inline bool TypeName##_equals(                    \
+    const TypeName *bs1, const TypeName *bs2)              \
+  {                                                        \
+    asrt(bs1 != NULL && bs1->words != NULL);               \
+    asrt(bs2 != NULL && bs2->words != NULL);               \
+    asrt_msg(bs1->num_bits == bs2->num_bits,               \
+             "Bitset_equals: mismatched sizes");           \
+    if (bs1->num_words == 0)                               \
+      return true;                                         \
+    return memcmp(bs1->words,                              \
+                  bs2->words,                              \
+                  bs1->num_words * sizeof(u64)) == 0;      \
+  }                                                        \
+                                                           \
+  static inline void TypeName##_copy(TypeName *dest,       \
+                                     const TypeName *src)  \
+  {                                                        \
+    asrt(dest != NULL && dest->words != NULL);             \
+    asrt(src != NULL && src->words != NULL);               \
+    asrt_msg(dest->num_bits == src->num_bits,              \
+             "Bitset_copy: mismatched sizes");             \
+    if (src->num_words == 0)                               \
+      return;                                              \
+    memcpy(dest->words,                                    \
+           src->words,                                     \
+           dest->num_words * sizeof(u64));                 \
+  }                                                        \
+                                                           \
+  static inline void TypeName##_intersect(                 \
+    TypeName *dest,                                        \
+    const TypeName *src1,                                  \
+    const TypeName *src2)                                  \
+  {                                                        \
+    asrt(dest->num_bits == src1->num_bits &&               \
+         dest->num_bits == src2->num_bits);                \
+    for (usize i = 0; i < dest->num_words; ++i)            \
+    {                                                      \
+      dest->words[i] = src1->words[i] & src2->words[i];    \
+    }                                                      \
+  }                                                        \
+                                                           \
+  static inline void TypeName##_union(                     \
+    TypeName *dest,                                        \
+    const TypeName *src1,                                  \
+    const TypeName *src2)                                  \
+  {                                                        \
+    asrt(dest->num_bits == src1->num_bits &&               \
+         dest->num_bits == src2->num_bits);                \
+    for (usize i = 0; i < dest->num_words; ++i)            \
+    {                                                      \
+      dest->words[i] = src1->words[i] | src2->words[i];    \
+    }                                                      \
+  }                                                        \
+                                                           \
+  static inline void TypeName##_difference(                \
+    TypeName *dest,                                        \
+    const TypeName *src1,                                  \
+    const TypeName *src2)                                  \
+  {                                                        \
+    asrt(dest->num_bits == src1->num_bits &&               \
+         dest->num_bits == src2->num_bits);                \
+    for (usize i = 0; i < dest->num_words; ++i)            \
+    {                                                      \
+      dest->words[i] = src1->words[i] & ~src2->words[i];   \
+    }                                                      \
+  }                                                        \
+                                                           \
+  static inline usize TypeName##_count_slow(               \
+    const TypeName *bs)                                    \
+  {                                                        \
+    asrt(bs != NULL && bs->words != NULL);                 \
+    usize count = 0;                                       \
+    for (usize i = 0; i < bs->num_bits; ++i)               \
+    {                                                      \
+      if (TypeName##_test(bs, i))                          \
+      {                                                    \
+        count++;                                           \
+      }                                                    \
+    }                                                      \
+    return count;                                          \
   }
 
-/*
- * ===================================================================
- * 3. 模板实例化
- * ===================================================================
- *
- * (假设 SYSTEM_ALLOC_ZEROED 和 BUMP_ALLOC_ZEROED 存在)
- */
-
-/**
- * @brief (实例 1) "sbitset" (SystemAlloc Bitset)
- */
 DEFINE_BITSET(sbitset, SystemAlloc, SYSTEM)
 
-/**
- * @brief (实例 2) "bbitset" (BumpAlloc Bitset)
- */
 DEFINE_BITSET(bbitset, Bump, BUMP)
-
-/*
- * ===================================================================
- * 4. 统一的泛型宏 (Generic Macros)
- * ===================================================================
- *
- * (为所有函数提供 _Generic 包装器)
- */
 
 #define bs_create(alloc, num_bits)                         \
   _Generic((alloc),                                        \
