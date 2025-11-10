@@ -6,7 +6,11 @@
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/src/"
             ],
-            "defines": [],
+            "defines": [
+                "XXH_STATIC_LINKING_ONLY=1",
+                "XXH_INLINE_ALL=1",
+                "XXH_VECTOR=XXH_AVX2"
+            ],
             "compilerPath": "/usr/bin/clang",
             "cStandard": "c23",
             "cppStandard": "c++23",
