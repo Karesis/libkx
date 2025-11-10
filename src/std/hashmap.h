@@ -75,8 +75,13 @@ cmp_fn_str(const str *a, const str *b)
  * 一个函数签名为 `bool (*)(const K_Type*, const K_Type*)`
  * 的比较函数。
  */
-#define DEFINE_HASHMAP(                                     \
-  T_Name, K_Type, V_Type, A_Type, FN_HASH, FN_CMP)          \
+#define DEFINE_HASHMAP(T_Name,                              \
+                       K_Type,                              \
+                       V_Type,                              \
+                       A_Type,                              \
+                       A_Prefix,                            \
+                       FN_HASH,                             \
+                       FN_CMP)                              \
                                                             \
   /* 1. 内部结构体和枚举 (来自你的虚拟代码) */              \
                                                             \
@@ -236,7 +241,7 @@ cmp_fn_str(const str *a, const str *b)
     /* <<< FIX: 使用 ZALLOC 和 LAYOUT_OF 代替 _alloc_type \
      */                                                     \
     T_Name *self =                                          \
-      ZALLOC(A_Type, allocer, LAYOUT_OF(T_Name));           \
+      ZALLOC(A_Prefix, allocer, LAYOUT_OF(T_Name));         \
     if (self == NULL)                                       \
     {                                                       \
       return NULL; /* OOM */                                \
@@ -248,12 +253,12 @@ cmp_fn_str(const str *a, const str *b)
     Layout layout =                                         \
       LAYOUT_OF_ARRAY(T_Name##_Entry, init_cap);            \
     /* <<< FIX: 使用 ALLOC Trait 代替 _alloc */             \
-    void *ptr = ALLOC(A_Type, allocer, layout);             \
+    void *ptr = ALLOC(A_Prefix, allocer, layout);           \
     if (ptr == NULL)                                        \
     {                                                       \
       /* <<< FIX: 使用 RELEASE 和 LAYOUT_OF 代替       \
        * _delete_type */                                    \
-      RELEASE(A_Type, allocer, self, LAYOUT_OF(T_Name));    \
+      RELEASE(A_Prefix, allocer, self, LAYOUT_OF(T_Name));  \
       return NULL; /* OOM */                                \
     }                                                       \
                                                             \
@@ -278,13 +283,14 @@ cmp_fn_str(const str *a, const str *b)
     Layout layout = LAYOUT_OF_ARRAY(                        \
       sizeof(T_Name##_Entry), self->capacity);              \
     /* <<< FIX: 使用 RELEASE Trait 代替 _release */         \
-    RELEASE(A_Type, self->allocer, self->entries, layout);  \
+    RELEASE(                                                \
+      A_Prefix, self->allocer, self->entries, layout);      \
                                                             \
     /* 2. 释放 HashMap 结构体 */                            \
     /* <<< FIX: 使用 RELEASE 和 LAYOUT_OF 代替         \
      * _delete_type */                                      \
     RELEASE(                                                \
-      A_Type, self->allocer, self, LAYOUT_OF(T_Name));      \
+      A_Prefix, self->allocer, self, LAYOUT_OF(T_Name));    \
   }                                                         \
                                                             \
   /** (Public) 插入或更新一个键值对 (你的 put) */           \
@@ -342,7 +348,7 @@ cmp_fn_str(const str *a, const str *b)
       sizeof(T_Name##_Entry), new_capacity);                \
     /* <<< FIX: 使用 ALLOC Trait 代替 _alloc */             \
     T_Name##_Entry *new_entries = (T_Name##_Entry *)ALLOC(  \
-      A_Type, self->allocer, new_layout);                   \
+      A_Prefix, self->allocer, new_layout);                 \
     if (new_entries == NULL)                                \
     {                                                       \
       return false; /* OOM */                               \
@@ -382,7 +388,7 @@ cmp_fn_str(const str *a, const str *b)
       sizeof(T_Name##_Entry), old_capacity);                \
     /* <<< FIX: 使用 RELEASE Trait 代替 _release */         \
     RELEASE(                                                \
-      A_Type, self->allocer, old_entries, old_layout);      \
+      A_Prefix, self->allocer, old_entries, old_layout);    \
     return true;                                            \
   }                                                         \
                                                             \
@@ -407,8 +413,8 @@ cmp_fn_str(const str *a, const str *b)
   }                                                         \
                                                             \
   /** (Public) 获取 V (你的 get) */                         \
-  static inline T_Name##_V T_Name##_get(T_Name *self,       \
-                                        const K_Type *key)  \
+  static inline Option_##T_Name##_V T_Name##_get(           \
+    T_Name *self, const K_Type *key)                        \
   {                                                         \
     T_Name##_FindResult res = T_Name##_find_entry(          \
       self->entries, self->capacity, key);                  \
