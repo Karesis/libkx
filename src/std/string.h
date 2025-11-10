@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 /*
  * Copyright (C) 2025 Karesis
  *
@@ -91,74 +90,64 @@ DEFINE_VECTOR(bstring, char, Bump, BUMP)
  * @param AllocType 构造函数所需的分配器类型 (例如:
  * SystemAlloc, Bump)
  */
-#define DEFINE_STRING_API(TypeName, AllocType)                            \
-                                                                          \
-  /**                                                                     \
-   * @brief (泛型模板) 从一个 C 字符串 (str) 创建一个新的 \
-   * string。                                                            \
-   */                                                                     \
-  static inline TypeName *TypeName##_new_from_str(                        \
-    AllocType *alloc, str s)                                              \
-  {                                                                       \
-    usize len = str_len(s);                                               \
-    TypeName *self =                                                      \
-      TypeName##_new(alloc); /* (来自 DEFINE_VECTOR) */                   \
-    TypeName##_reserve_to(                                                \
-      self, len + 1); /* (来自 DEFINE_VECTOR) */                          \
-    memcpy(self->data, s, len);                                           \
-    self->data[len] = '\0';                                               \
-    self->len = len;                                                      \
-    return self;                                                          \
-  }                                                                       \
-                                                                          \
-  /**                                                                     \
-   * @brief (泛型模板) 在 string 末尾追加一个 C 字符串      \
-   * (str)。                                                             \
-   */                                                                     \
-  static inline void TypeName##_push_str(TypeName *self,                  \
-                                         str s)                           \
-  {                                                                       \
-    usize len = str_len(s);                                               \
-    if (len == 0)                                                         \
-      return;                                                             \
-    TypeName##_reserve_more(                                              \
-      self, len); /* (来自 DEFINE_VECTOR) */                              \
-    memcpy(self->data + self->len, s, len);                               \
-    self->len += len;                                                     \
-    self->data[self->len] = '\0';                                         \
-  }                                                                       \
-                                                                          \
-  /**                                                                     \
-   * @brief (泛型模板) 将 string 作为 C 字符串 (str)            \
-   * 查看。                                                            \
-   */                                                                     \
-  static inline str TypeName##_as_str(                                    \
-    const TypeName *self)                                                 \
-  {                                                                       \
-    if (TypeName##_len(self) ==                                           \
-        0) /* (来自 DEFINE_VECTOR) */                                     \
-    {                                                                     \
-      return ""; /* 返回一个指向静态空字符串的指针 */                     \
-    }                                                                     \
-    return TypeName##_as_const_ptr(                                       \
-      self); /* (来自 DEFINE_VECTOR) */                                   \
-  }                                                                       \
-                                                                          \
-  /**                                                                     \
-   * @brief (泛型模板) 在 string 末尾追加一段原始字节。   \
-   * (注意: 假设 'rawstr' 是 'const char*' 或 'const                \
-   * void*')                                                              \
-   */                                                                     \
-  static inline void TypeName##_push_bytes(                               \
-    TypeName *self, const char *bytes, usize len)                         \
-  {                                                                       \
-    if (len == 0)                                                         \
-      return;                                                             \
-    TypeName##_reserve_more(                                              \
-      self, len); /* (来自 DEFINE_VECTOR) */                              \
-    memcpy(self->data + self->len, bytes, len);                           \
-    self->len += len;                                                     \
-    self->data[self->len] = '\0';                                         \
+#define DEFINE_STRING_API(TypeName, AllocType)                                                     \
+                                                                                                   \
+  /**                                                                                              \
+   * @brief (泛型模板) 从一个 C 字符串 (str) 创建一个新的                          \
+   * string。                                                                                     \
+   */                                                                                              \
+  static inline TypeName *TypeName##_new_from_str(AllocType *alloc, str s)                         \
+  {                                                                                                \
+    usize len = str_len(s);                                                                        \
+    TypeName *self = TypeName##_new(alloc); /* (来自 DEFINE_VECTOR) */                             \
+    TypeName##_reserve_to(self, len + 1);   /* (来自 DEFINE_VECTOR) */                             \
+    memcpy(self->data, s, len);                                                                    \
+    self->data[len] = '\0';                                                                        \
+    self->len = len;                                                                               \
+    return self;                                                                                   \
+  }                                                                                                \
+                                                                                                   \
+  /**                                                                                              \
+   * @brief (泛型模板) 在 string 末尾追加一个 C 字符串                               \
+   * (str)。                                                                                      \
+   */                                                                                              \
+  static inline void TypeName##_push_str(TypeName *self, str s)                                    \
+  {                                                                                                \
+    usize len = str_len(s);                                                                        \
+    if (len == 0)                                                                                  \
+      return;                                                                                      \
+    TypeName##_reserve_more(self, len); /* (来自 DEFINE_VECTOR) */                                 \
+    memcpy(self->data + self->len, s, len);                                                        \
+    self->len += len;                                                                              \
+    self->data[self->len] = '\0';                                                                  \
+  }                                                                                                \
+                                                                                                   \
+  /**                                                                                              \
+   * @brief (泛型模板) 将 string 作为 C 字符串 (str)                                     \
+   * 查看。                                                                                     \
+   */                                                                                              \
+  static inline str TypeName##_as_str(const TypeName *self)                                        \
+  {                                                                                                \
+    if (TypeName##_len(self) == 0) /* (来自 DEFINE_VECTOR) */                                      \
+    {                                                                                              \
+      return ""; /* 返回一个指向静态空字符串的指针 */                                              \
+    }                                                                                              \
+    return TypeName##_as_const_ptr(self); /* (来自 DEFINE_VECTOR) */                               \
+  }                                                                                                \
+                                                                                                   \
+  /**                                                                                              \
+   * @brief (泛型模板) 在 string 末尾追加一段原始字节。                            \
+   * (注意: 假设 'rawstr' 是 'const char*' 或 'const                                         \
+   * void*')                                                                                       \
+   */                                                                                              \
+  static inline void TypeName##_push_bytes(TypeName *self, const char *bytes, usize len)           \
+  {                                                                                                \
+    if (len == 0)                                                                                  \
+      return;                                                                                      \
+    TypeName##_reserve_more(self, len); /* (来自 DEFINE_VECTOR) */                                 \
+    memcpy(self->data + self->len, bytes, len);                                                    \
+    self->len += len;                                                                              \
+    self->data[self->len] = '\0';                                                                  \
   }
 
 /*
@@ -198,9 +187,7 @@ sstring_push_char_adapter(void *sink, char c)
   sstring_push((sstring *)sink, c);
 }
 static inline void
-sstring_push_bytes_adapter(void *sink,
-                           const char *bytes,
-                           usize len)
+sstring_push_bytes_adapter(void *sink, const char *bytes, usize len)
 {
   /* * 静态分发：调用 sstring_push_bytes (来自
    * DEFINE_STRING_API) */
@@ -215,9 +202,7 @@ bstring_push_char_adapter(void *sink, char c)
   bstring_push((bstring *)sink, c);
 }
 static inline void
-bstring_push_bytes_adapter(void *sink,
-                           const char *bytes,
-                           usize len)
+bstring_push_bytes_adapter(void *sink, const char *bytes, usize len)
 {
   /* * 静态分发：调用 bstring_push_bytes (来自
    * DEFINE_STRING_API) */
@@ -238,29 +223,25 @@ bstring_push_bytes_adapter(void *sink,
 /**
  * @brief (泛型) 在字符串末尾追加一个 C 字符串 (str)。
  */
-#define s_push_str(self, s)                                \
-  _Generic((self),                                         \
-    sstring *: sstring_push_str,                           \
-    bstring *: bstring_push_str)(self, s)
+#define s_push_str(self, s)                                                                        \
+  _Generic((self), sstring *: sstring_push_str, bstring *: bstring_push_str)(self, s)
 
 /**
  * @brief (泛型) 将字符串作为 C 字符串 (str) 查看。
  */
-#define s_as_str(self)                                     \
-  _Generic((self),                                         \
-    sstring *: sstring_as_str,                             \
-    const sstring *: sstring_as_str,                       \
-    bstring *: bstring_as_str,                             \
+#define s_as_str(self)                                                                             \
+  _Generic((self),                                                                                 \
+    sstring *: sstring_as_str,                                                                     \
+    const sstring *: sstring_as_str,                                                               \
+    bstring *: bstring_as_str,                                                                     \
     const bstring *: bstring_as_str)(self)
 
 /**
  * @brief (泛型) 从一个 C 字符串 (str)
  * 创建一个新的动态字符串。
  */
-#define s_new_from_str(alloc, s)                           \
-  _Generic((alloc),                                        \
-    SystemAlloc *: sstring_new_from_str,                   \
-    Bump *: bstring_new_from_str)(alloc, s)
+#define s_new_from_str(alloc, s)                                                                   \
+  _Generic((alloc), SystemAlloc *: sstring_new_from_str, Bump *: bstring_new_from_str)(alloc, s)
 
 /**
  * @brief (泛型) 格式化内容并追加到 sstring 或 bstring。
@@ -269,21 +250,18 @@ bstring_push_bytes_adapter(void *sink,
  * sstring *s = sstring_new(...);
  * s_format(s, "Hello, {str}!", "world");
  */
-#define s_format(sink, fmt, ...)                           \
-  vformat_func(                                            \
-    (void *)(sink),                                        \
-                                                           \
-    /* 2. 静态选择 "push_char" 适配器 */                   \
-    _Generic((sink),                                       \
-      sstring *: sstring_push_char_adapter,                \
-      bstring *: bstring_push_char_adapter),               \
-                                                           \
-    /* 3. 静态选择 "push_bytes" 适配器 */                  \
-    _Generic((sink),                                       \
-      sstring *: sstring_push_bytes_adapter,               \
-      bstring *: bstring_push_bytes_adapter),              \
-                                                           \
-    /* 4. 格式化字符串和其余参数 (来自 vformat.h) */       \
-    (fmt),                                                 \
-    ARGS_COUNT(__VA_ARGS__) __VA_OPT__(, )                 \
-      EXPAND_ALL(TYPE_INFO, __VA_ARGS__))
+#define s_format(sink, fmt, ...)                                                                   \
+  vformat_func(                                                                                    \
+    (void *)(sink),                                                                                \
+                                                                                                   \
+    /* 2. 静态选择 "push_char" 适配器 */                                                           \
+    _Generic((sink), sstring *: sstring_push_char_adapter, bstring *: bstring_push_char_adapter),  \
+                                                                                                   \
+    /* 3. 静态选择 "push_bytes" 适配器 */                                                          \
+    _Generic((sink),                                                                               \
+      sstring *: sstring_push_bytes_adapter,                                                       \
+      bstring *: bstring_push_bytes_adapter),                                                      \
+                                                                                                   \
+    /* 4. 格式化字符串和其余参数 (来自 vformat.h) */                                               \
+    (fmt),                                                                                         \
+    ARGS_COUNT(__VA_ARGS__) __VA_OPT__(, ) EXPAND_ALL(TYPE_INFO, __VA_ARGS__))

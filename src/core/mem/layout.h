@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 /*
  * Copyright (C) 2025 Karesis
  *
@@ -78,8 +77,7 @@ _is_power_of_two(usize n)
 static inline Layout
 layout_from_size_align(usize size, usize align)
 {
-  assert(_is_power_of_two(align) &&
-         "Layout alignment must be a power of two");
+  assert(_is_power_of_two(align) && "Layout alignment must be a power of two");
   return (Layout){.size = size, .align = align};
 }
 
@@ -90,8 +88,7 @@ layout_from_size_align(usize size, usize align)
  * @param T 要为其创建布局的类型。
  * @return Layout 描述符。
  */
-#define LAYOUT_OF(T)                                       \
-  (layout_from_size_align(sizeof(T), alignof(T)))
+#define LAYOUT_OF(T) (layout_from_size_align(sizeof(T), alignof(T)))
 
 /**
  * @brief 宏：为一个包含 N 个 T 元素的数组创建 Layout
@@ -101,5 +98,4 @@ layout_from_size_align(usize size, usize align)
  * @param N 元素数量。
  * @return Layout 描述符。
  */
-#define LAYOUT_OF_ARRAY(T, N)                              \
-  (layout_from_size_align(sizeof(T) * (N), alignof(T)))
+#define LAYOUT_OF_ARRAY(T, N) (layout_from_size_align(sizeof(T) * (N), alignof(T)))

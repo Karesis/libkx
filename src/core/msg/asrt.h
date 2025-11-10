@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 /*
  * Copyright (C) 2025 Karesis
  *
@@ -57,14 +56,13 @@
  * asrt_msg(user_id > 0, "Invalid user ID: {}",
  * user_id);
  */
-#define asrt_msg(cond, fmt, ...)                           \
-  do                                                       \
-  {                                                        \
-    if (!(cond))                                           \
-    {                                                      \
-      panic("Assertion failed (`{}`): " fmt,               \
-            #cond __VA_OPT__(, ) __VA_ARGS__);             \
-    }                                                      \
+#define asrt_msg(cond, fmt, ...)                                                                   \
+  do                                                                                               \
+  {                                                                                                \
+    if (!(cond))                                                                                   \
+    {                                                                                              \
+      panic("Assertion failed (`{}`): " fmt, #cond __VA_OPT__(, ) __VA_ARGS__);                    \
+    }                                                                                              \
   } while (0)
 
 /**
@@ -76,11 +74,11 @@
  * asrt(ptr != NULL);
  * // panic 时: Assertion failed: `ptr != NULL`
  */
-#define asrt(cond)                                         \
-  do                                                       \
-  {                                                        \
-    if (!(cond))                                           \
-    {                                                      \
-      panic("Assertion failed: {}", #cond);                \
-    }                                                      \
+#define asrt(cond)                                                                                 \
+  do                                                                                               \
+  {                                                                                                \
+    if (!(cond))                                                                                   \
+    {                                                                                              \
+      panic("Assertion failed: {}", #cond);                                                        \
+    }                                                                                              \
   } while (0)

@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 /*
  * Copyright (C) 2025 Karesis
  *
@@ -59,5 +58,4 @@ typedef const void *canyptr; // "const any pointer"
  * @param type 容器结构体的类型 (如 MyStruct)
  * @param member 成员在结构体中的名字 (如 list_node)
  */
-#define container_of(ptr, type, member)                    \
-  ((type *)((char *)(ptr) - offsetof(type, member)))
+#define container_of(ptr, type, member) ((type *)((char *)(ptr) - offsetof(type, member)))

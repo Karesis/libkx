@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 /*
  * Copyright (C) 2025 Karesis
  *
@@ -80,15 +79,15 @@
  * was null! (color reset)
  * // [程序终止]
  */
-#define panic(fmt, ...)                                    \
-  do                                                       \
-  {                                                        \
-    format_to_file(stderr,                                 \
-                   "{}[PANIC] ({}:{}) " fmt "{}\n",        \
-                                                           \
-                   fg(PANIC_COLOR),                        \
-                   __FILE__,                               \
-                   __LINE__ __VA_OPT__(, ) __VA_ARGS__,    \
-                   reset());                               \
-    abort(); /* 终止程序 */                                \
+#define panic(fmt, ...)                                                                            \
+  do                                                                                               \
+  {                                                                                                \
+    format_to_file(stderr,                                                                         \
+                   "{}[PANIC] ({}:{}) " fmt "{}\n",                                                \
+                                                                                                   \
+                   fg(PANIC_COLOR),                                                                \
+                   __FILE__,                                                                       \
+                   __LINE__ __VA_OPT__(, ) __VA_ARGS__,                                            \
+                   reset());                                                                       \
+    abort(); /* 终止程序 */                                                                        \
   } while (0)

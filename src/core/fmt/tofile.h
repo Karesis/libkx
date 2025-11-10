@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 /*
  * Copyright (C) 2025 Karesis
  *
@@ -54,9 +53,7 @@ file_sink_push_char_adapter(void *sink, char c)
   fputc(c, (FILE *)sink);
 }
 static inline void
-file_sink_push_bytes_adapter(void *sink,
-                             const char *bytes,
-                             usize len)
+file_sink_push_bytes_adapter(void *sink, const char *bytes, usize len)
 {
   fwrite(bytes, 1, len, (FILE *)sink);
 }
@@ -69,10 +66,9 @@ file_sink_push_bytes_adapter(void *sink,
  * 这是 panic 和 dbg 应该使用的宏。
  * 它不依赖 sstring/bstring。
  */
-#define format_to_file(sink, fmt, ...)                     \
-  vformat_func((void *)(sink),                             \
-               file_sink_push_char_adapter,                \
-               file_sink_push_bytes_adapter,               \
-               (fmt),                                      \
-               ARGS_COUNT(__VA_ARGS__) __VA_OPT__(, )      \
-                 EXPAND_ALL(TYPE_INFO, __VA_ARGS__))
+#define format_to_file(sink, fmt, ...)                                                             \
+  vformat_func((void *)(sink),                                                                     \
+               file_sink_push_char_adapter,                                                        \
+               file_sink_push_bytes_adapter,                                                       \
+               (fmt),                                                                              \
+               ARGS_COUNT(__VA_ARGS__) __VA_OPT__(, ) EXPAND_ALL(TYPE_INFO, __VA_ARGS__))

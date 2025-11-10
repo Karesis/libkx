@@ -11,6 +11,8 @@ DIRS_TO_SCAN = ["src", "include", "tests"]
 TARGET_EXTS = {".c", ".h"}
 
 THIRD_PARTY_PATHS = {
+    "src/std/hash/xxhash.h",
+    "src/std/hash/xxhash.c",
 }
 
 CLANG_FORMAT_BIN = os.environ.get("CLANG_FORMAT_BIN", "clang-format")

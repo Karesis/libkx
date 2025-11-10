@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 /**
@@ -84,9 +83,7 @@ DefaultHasher_new(void)
  * 映射到 xxHash 的 update 函数。
  */
 void
-DefaultHasher_write(DefaultHasher *self,
-                    const void *bytes,
-                    usize len)
+DefaultHasher_write(DefaultHasher *self, const void *bytes, usize len)
 {
   (void)XXH64_update(&self->state, bytes, len);
 }
@@ -119,7 +116,7 @@ DEFINE_HASHER_TRAIT(DefaultHasher)
  * 时， 那个 _Generic 宏将会包含 "DefaultHasher*: ..."
  * 这一分支， 从而静态分发到 DefaultHasher_write_u64()。
  */
-#define HASHER_DISPATCH_LIST(state, func, ...)             \
+#define HASHER_DISPATCH_LIST(state, func, ...)                                                     \
   DefaultHasher * : DefaultHasher_##func(state, __VA_ARGS__)
 
 #include <core/hash/hash.h>

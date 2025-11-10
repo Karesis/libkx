@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #pragma once
 
 #include <core/hash/hasher.h>
@@ -64,10 +63,10 @@
  * ##__VA_ARGS__)
  */
 #ifndef HASHER_DISPATCH_LIST
-#define HASHER_DISPATCH_LIST(state, func_name, ...)        \
-  /* core 中默认是空的。如果用户没有实现任何 hasher， */   \
-  /* _Generic 会在 default 分支失败。*/                    \
-  default:                                                 \
+#define HASHER_DISPATCH_LIST(state, func_name, ...)                                                \
+  /* core 中默认是空的。如果用户没有实现任何 hasher， */                                           \
+  /* _Generic 会在 default 分支失败。*/                                                            \
+  default:                                                                                         \
     (void)0
 #endif
 
@@ -76,57 +75,33 @@
  */
 
 /** (Internal) _Generic 分发到 Hasher_write() */
-#define HASHER_WRITE(state, bytes, len)                    \
-  _Generic((state),                                        \
-    HASHER_DISPATCH_LIST(state, write, bytes, len))
+#define HASHER_WRITE(state, bytes, len)                                                            \
+  _Generic((state), HASHER_DISPATCH_LIST(state, write, bytes, len))
 /** (Internal) _Generic 分发到 Hasher_write_u8() */
-#define HASHER_WRITE_U8(state, val)                        \
-  _Generic((state),                                        \
-    HASHER_DISPATCH_LIST(state, write_u8, val))
+#define HASHER_WRITE_U8(state, val) _Generic((state), HASHER_DISPATCH_LIST(state, write_u8, val))
 /** (Internal) _Generic 分发到 Hasher_write_u16() */
-#define HASHER_WRITE_U16(state, val)                       \
-  _Generic((state),                                        \
-    HASHER_DISPATCH_LIST(state, write_u16, val))
+#define HASHER_WRITE_U16(state, val) _Generic((state), HASHER_DISPATCH_LIST(state, write_u16, val))
 /** (Internal) _Generic 分发到 Hasher_write_u32() */
-#define HASHER_WRITE_U32(state, val)                       \
-  _Generic((state),                                        \
-    HASHER_DISPATCH_LIST(state, write_u32, val))
+#define HASHER_WRITE_U32(state, val) _Generic((state), HASHER_DISPATCH_LIST(state, write_u32, val))
 /** (Internal) _Generic 分发到 Hasher_write_u64() */
-#define HASHER_WRITE_U64(state, val)                       \
-  _Generic((state),                                        \
-    HASHER_DISPATCH_LIST(state, write_u64, val))
+#define HASHER_WRITE_U64(state, val) _Generic((state), HASHER_DISPATCH_LIST(state, write_u64, val))
 /** (Internal) _Generic 分发到 Hasher_write_i8() */
-#define HASHER_WRITE_I8(state, val)                        \
-  _Generic((state),                                        \
-    HASHER_DISPATCH_LIST(state, write_i8, val))
+#define HASHER_WRITE_I8(state, val) _Generic((state), HASHER_DISPATCH_LIST(state, write_i8, val))
 /** (Internal) _Generic 分发到 Hasher_write_i16() */
-#define HASHER_WRITE_I16(state, val)                       \
-  _Generic((state),                                        \
-    HASHER_DISPATCH_LIST(state, write_i16, val))
+#define HASHER_WRITE_I16(state, val) _Generic((state), HASHER_DISPATCH_LIST(state, write_i16, val))
 /** (Internal) _Generic 分发到 Hasher_write_i32() */
-#define HASHER_WRITE_I32(state, val)                       \
-  _Generic((state),                                        \
-    HASHER_DISPATCH_LIST(state, write_i32, val))
+#define HASHER_WRITE_I32(state, val) _Generic((state), HASHER_DISPATCH_LIST(state, write_i32, val))
 /** (Internal) _Generic 分发到 Hasher_write_i64() */
-#define HASHER_WRITE_I64(state, val)                       \
-  _Generic((state),                                        \
-    HASHER_DISPATCH_LIST(state, write_i64, val))
+#define HASHER_WRITE_I64(state, val) _Generic((state), HASHER_DISPATCH_LIST(state, write_i64, val))
 /** (Internal) _Generic 分发到 Hasher_write_f32() */
-#define HASHER_WRITE_F32(state, val)                       \
-  _Generic((state),                                        \
-    HASHER_DISPATCH_LIST(state, write_f32, val))
+#define HASHER_WRITE_F32(state, val) _Generic((state), HASHER_DISPATCH_LIST(state, write_f32, val))
 /** (Internal) _Generic 分发到 Hasher_write_f64() */
-#define HASHER_WRITE_F64(state, val)                       \
-  _Generic((state),                                        \
-    HASHER_DISPATCH_LIST(state, write_f64, val))
+#define HASHER_WRITE_F64(state, val) _Generic((state), HASHER_DISPATCH_LIST(state, write_f64, val))
 /** (Internal) _Generic 分发到 Hasher_write_usize() */
-#define HASHER_WRITE_USIZE(state, val)                     \
-  _Generic((state),                                        \
-    HASHER_DISPATCH_LIST(state, write_usize, val))
+#define HASHER_WRITE_USIZE(state, val)                                                             \
+  _Generic((state), HASHER_DISPATCH_LIST(state, write_usize, val))
 /** (Internal) _Generic 分发到 Hasher_write_ptr() */
-#define HASHER_WRITE_PTR(state, val)                       \
-  _Generic((state),                                        \
-    HASHER_DISPATCH_LIST(state, write_ptr, val))
+#define HASHER_WRITE_PTR(state, val) _Generic((state), HASHER_DISPATCH_LIST(state, write_ptr, val))
 
 // --- 3. 公开的 hash() 静态分发宏 ---
 // ------------------------------------
@@ -142,98 +117,75 @@
  * @param hasher_state 指向 Hasher 状态机的指针 (e.g.,
  * &my_default_hasher)
  */
-#define hash(value, hasher_state)                           \
-  do                                                        \
-  {                                                         \
-    _Generic((value),                                       \
-      /* Unsigned Ints */ /* * 关键修复:                \
-                           * 在每个分支内部，       \
-                           * 显式地将 'value'           \
-                           * 转换为该分支的类型， \
-                           * 然后再解引用。          \
-                           */                               \
-                                                            \
-        u8 *: HASHER_WRITE_U8(hasher_state,                 \
-                              *((u8 *)value)),              \
-      const u8 *: HASHER_WRITE_U8(hasher_state,             \
-                                  *((const u8 *)value)),    \
-      u16 *: HASHER_WRITE_U16(hasher_state,                 \
-                              *((u16 *)value)),             \
-      const u16 *: HASHER_WRITE_U16(                        \
-               hasher_state, *((const u16 *)value)),        \
-      u32 *: HASHER_WRITE_U32(hasher_state,                 \
-                              *((u32 *)value)),             \
-      const u32 *: HASHER_WRITE_U32(                        \
-               hasher_state, *((const u32 *)value)),        \
-      u64 *: HASHER_WRITE_U64(hasher_state,                 \
-                              *((u64 *)value)),             \
-      const u64 *: HASHER_WRITE_U64(                        \
-               hasher_state, *((const u64 *)value)),        \
-                                                            \
-      /* Signed Ints */                                     \
-      i8 *: HASHER_WRITE_I8(hasher_state, *((i8 *)value)),  \
-      const i8 *: HASHER_WRITE_I8(hasher_state,             \
-                                  *((const i8 *)value)),    \
-      i16 *: HASHER_WRITE_I16(hasher_state,                 \
-                              *((i16 *)value)),             \
-      const i16 *: HASHER_WRITE_I16(                        \
-               hasher_state, *((const i16 *)value)),        \
-      i32 *: HASHER_WRITE_I32(hasher_state,                 \
-                              *((i32 *)value)),             \
-      const i32 *: HASHER_WRITE_I32(                        \
-               hasher_state, *((const i32 *)value)),        \
-      i64 *: HASHER_WRITE_I64(hasher_state,                 \
-                              *((i64 *)value)),             \
-      const i64 *: HASHER_WRITE_I64(                        \
-               hasher_state, *((const i64 *)value)),        \
-                                                            \
-      /* Floats */                                          \
-      f32 *: HASHER_WRITE_F32(hasher_state,                 \
-                              *((f32 *)value)),             \
-      const f32 *: HASHER_WRITE_F32(                        \
-               hasher_state, *((const f32 *)value)),        \
-      f64 *: HASHER_WRITE_F64(hasher_state,                 \
-                              *((f64 *)value)),             \
-      const f64 *: HASHER_WRITE_F64(                        \
-               hasher_state, *((const f64 *)value)),        \
-                                                            \
-      /* Strings (特例) */                                  \
-      str *: ({                                             \
-               /* 修复: 强制转换 'value' */                 \
-               str __v = *((str *)value);                   \
-               if (__v == NULL)                             \
-               {                                            \
-                 HASHER_WRITE_U8(hasher_state, 0);          \
-               }                                            \
-               else                                         \
-               {                                            \
-                 usize len = str_len(__v);                  \
-                 HASHER_WRITE((hasher_state), __v, len);    \
-                 HASHER_WRITE_U64((hasher_state),           \
-                                  (u64)len);                \
-               }                                            \
-             }),                                            \
-      const str *: ({                                       \
-               /* 修复: 强制转换 'value' */                 \
-               const str __v = *((const str *)value);       \
-               if (__v == NULL)                             \
-               {                                            \
-                 HASHER_WRITE_U8(hasher_state, 0);          \
-               }                                            \
-               else                                         \
-               {                                            \
-                 usize len = str_len(__v);                  \
-                 HASHER_WRITE((hasher_state), __v, len);    \
-                 HASHER_WRITE_U64((hasher_state),           \
-                                  (u64)len);                \
-               }                                            \
-             }),                                            \
-                                                            \
-      /* Pointers (by address) */                           \
-      anyptr *: HASHER_WRITE_PTR(hasher_state,              \
-                                 *((anyptr *)value)),       \
-      canyptr *: HASHER_WRITE_PTR(hasher_state,             \
-                                  *((canyptr *)value)),     \
-                                                            \
-      default: (void)0);                                    \
+#define hash(value, hasher_state)                                                                  \
+  do                                                                                               \
+  {                                                                                                \
+    _Generic((value),                                                                              \
+      /* Unsigned Ints */ /* * 关键修复:                                                       \
+                           * 在每个分支内部，                                              \
+                           * 显式地将 'value'                                                  \
+                           * 转换为该分支的类型，                                        \
+                           * 然后再解引用。                                                 \
+                           */                                                                      \
+                                                                                                   \
+        u8 *: HASHER_WRITE_U8(hasher_state, *((u8 *)value)),                                       \
+      const u8 *: HASHER_WRITE_U8(hasher_state, *((const u8 *)value)),                             \
+      u16 *: HASHER_WRITE_U16(hasher_state, *((u16 *)value)),                                      \
+      const u16 *: HASHER_WRITE_U16(hasher_state, *((const u16 *)value)),                          \
+      u32 *: HASHER_WRITE_U32(hasher_state, *((u32 *)value)),                                      \
+      const u32 *: HASHER_WRITE_U32(hasher_state, *((const u32 *)value)),                          \
+      u64 *: HASHER_WRITE_U64(hasher_state, *((u64 *)value)),                                      \
+      const u64 *: HASHER_WRITE_U64(hasher_state, *((const u64 *)value)),                          \
+                                                                                                   \
+      /* Signed Ints */                                                                            \
+      i8 *: HASHER_WRITE_I8(hasher_state, *((i8 *)value)),                                         \
+      const i8 *: HASHER_WRITE_I8(hasher_state, *((const i8 *)value)),                             \
+      i16 *: HASHER_WRITE_I16(hasher_state, *((i16 *)value)),                                      \
+      const i16 *: HASHER_WRITE_I16(hasher_state, *((const i16 *)value)),                          \
+      i32 *: HASHER_WRITE_I32(hasher_state, *((i32 *)value)),                                      \
+      const i32 *: HASHER_WRITE_I32(hasher_state, *((const i32 *)value)),                          \
+      i64 *: HASHER_WRITE_I64(hasher_state, *((i64 *)value)),                                      \
+      const i64 *: HASHER_WRITE_I64(hasher_state, *((const i64 *)value)),                          \
+                                                                                                   \
+      /* Floats */                                                                                 \
+      f32 *: HASHER_WRITE_F32(hasher_state, *((f32 *)value)),                                      \
+      const f32 *: HASHER_WRITE_F32(hasher_state, *((const f32 *)value)),                          \
+      f64 *: HASHER_WRITE_F64(hasher_state, *((f64 *)value)),                                      \
+      const f64 *: HASHER_WRITE_F64(hasher_state, *((const f64 *)value)),                          \
+                                                                                                   \
+      /* Strings (特例) */                                                                         \
+      str *: ({                                                                                    \
+               /* 修复: 强制转换 'value' */                                                        \
+               str __v = *((str *)value);                                                          \
+               if (__v == NULL)                                                                    \
+               {                                                                                   \
+                 HASHER_WRITE_U8(hasher_state, 0);                                                 \
+               }                                                                                   \
+               else                                                                                \
+               {                                                                                   \
+                 usize len = str_len(__v);                                                         \
+                 HASHER_WRITE((hasher_state), __v, len);                                           \
+                 HASHER_WRITE_U64((hasher_state), (u64)len);                                       \
+               }                                                                                   \
+             }),                                                                                   \
+      const str *: ({                                                                              \
+               /* 修复: 强制转换 'value' */                                                        \
+               const str __v = *((const str *)value);                                              \
+               if (__v == NULL)                                                                    \
+               {                                                                                   \
+                 HASHER_WRITE_U8(hasher_state, 0);                                                 \
+               }                                                                                   \
+               else                                                                                \
+               {                                                                                   \
+                 usize len = str_len(__v);                                                         \
+                 HASHER_WRITE((hasher_state), __v, len);                                           \
+                 HASHER_WRITE_U64((hasher_state), (u64)len);                                       \
+               }                                                                                   \
+             }),                                                                                   \
+                                                                                                   \
+      /* Pointers (by address) */                                                                  \
+      anyptr *: HASHER_WRITE_PTR(hasher_state, *((anyptr *)value)),                                \
+      canyptr *: HASHER_WRITE_PTR(hasher_state, *((canyptr *)value)),                              \
+                                                                                                   \
+      default: (void)0);                                                                           \
   } while (0)

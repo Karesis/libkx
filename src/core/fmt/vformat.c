@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 /*
  * Copyright (C) 2025 Karesis
  *
@@ -76,8 +75,7 @@ vformat_engine(void *sink,
                int count,
                va_list args)
 {
-  if (fmt == NULL || sink == NULL || push_c == NULL ||
-      push_b == NULL)
+  if (fmt == NULL || sink == NULL || push_c == NULL || push_b == NULL)
   {
     return;
   }
@@ -90,8 +88,7 @@ vformat_engine(void *sink,
   {
     bool match = false;
     // 仅匹配 "{}"
-    if (fmt[i] == '{' && i + 1 < fmtlen &&
-        fmt[i + 1] == '}')
+    if (fmt[i] == '{' && i + 1 < fmtlen && fmt[i + 1] == '}')
     {
       i = i + 1; // 跳过 '}'
       match = true;
@@ -148,8 +145,7 @@ vformat_engine(void *sink,
       }
       case TYPE_I64: {
         i64 data = va_arg(args, i64);
-        len = snprintf(
-          temp_buf, TEMP_BUF_SIZE, "%" PRId64, data);
+        len = snprintf(temp_buf, TEMP_BUF_SIZE, "%" PRId64, data);
         push_b(sink, temp_buf, (usize)len);
         break;
       }
@@ -171,8 +167,7 @@ vformat_engine(void *sink,
       }
       case TYPE_U64: {
         u64 data = va_arg(args, u64);
-        len = snprintf(
-          temp_buf, TEMP_BUF_SIZE, "%" PRIu64, data);
+        len = snprintf(temp_buf, TEMP_BUF_SIZE, "%" PRIu64, data);
         push_b(sink, temp_buf, (usize)len);
         break;
       }
@@ -224,19 +219,14 @@ vformat_engine(void *sink,
  */
 
 void
-vformat_func(void *sink,
-             sink_char_fn push_char,
-             sink_bytes_fn push_bytes,
-             const char *fmt,
-             int count,
-             ...)
+vformat_func(
+  void *sink, sink_char_fn push_char, sink_bytes_fn push_bytes, const char *fmt, int count, ...)
 {
   va_list args;
   va_start(args, count);
 
   // 将所有参数传递给核心引擎
-  vformat_engine(
-    sink, push_char, push_bytes, fmt, count, args);
+  vformat_engine(sink, push_char, push_bytes, fmt, count, args);
 
   va_end(args);
 }

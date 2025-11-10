@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 /*
  * Copyright (C) 2025 Karesis
  *
@@ -58,8 +57,7 @@ typedef const char *str;
 static inline usize
 str_len(str self)
 {
-  assert(self != NULL &&
-         "str_len() received a NULL pointer");
+  assert(self != NULL && "str_len() received a NULL pointer");
 
   usize len = 0;
   while (self[len] != '\0')
@@ -114,10 +112,8 @@ str_cmp(str s1, str s2)
 static inline bool
 str_starts_with(str self, str prefix)
 {
-  assert(self != NULL &&
-         "str_starts_with() received NULL for self");
-  assert(prefix != NULL &&
-         "str_starts_with() received NULL for prefix");
+  assert(self != NULL && "str_starts_with() received NULL for self");
+  assert(prefix != NULL && "str_starts_with() received NULL for prefix");
 
   while (*prefix != '\0')
   {
@@ -139,10 +135,8 @@ str_starts_with(str self, str prefix)
 static inline bool
 str_ends_with(str self, str suffix)
 {
-  assert(self != NULL &&
-         "str_ends_with() received NULL for self");
-  assert(suffix != NULL &&
-         "str_ends_with() received NULL for suffix");
+  assert(self != NULL && "str_ends_with() received NULL for self");
+  assert(suffix != NULL && "str_ends_with() received NULL for suffix");
 
   usize self_len = str_len(self);
   usize suffix_len = str_len(suffix);
@@ -181,9 +175,7 @@ str_ends_with(str self, str suffix)
 static inline str
 str_find(str self, str needle)
 {
-  assert(self != NULL &&
-         "str_find() received NULL for self");
-  assert(needle != NULL &&
-         "str_find() received NULL for needle");
+  assert(self != NULL && "str_find() received NULL for self");
+  assert(needle != NULL && "str_find() received NULL for needle");
   return (str)strstr(self, needle);
 }

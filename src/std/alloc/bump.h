@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 /*
  * Copyright (C) 2025 Karesis
  *
@@ -50,11 +49,11 @@
  */
 
 #include <core/mem/allocer.h> // L1 Trait (ALLOC, REALLOC, ...)
-#include <core/mem/layout.h> // L1 Layout
-#include <core/msg/panic.h>  // L3 Panic
-#include <core/option.h>     // L1 Option
-#include <core/type.h>       // L0 Types (usize, anyptr)
-#include <string.h>          // L0 memset (用于 ZALLOC)
+#include <core/mem/layout.h>  // L1 Layout
+#include <core/msg/panic.h>   // L3 Panic
+#include <core/option.h>      // L1 Option
+#include <core/type.h>        // L0 Types (usize, anyptr)
+#include <string.h>           // L0 memset (用于 ZALLOC)
 
 // 我们需要 SystemAlloc 的 *类型*，作为 bump_new 的参数
 #include <core/mem/sysalc.h>
@@ -119,8 +118,7 @@ Option_BumpPtr bump_new(SystemAlloc *backing_alloc);
 /**
  * @brief 在堆上创建一个新的 Bump Arena (指定最小对齐)。
  */
-Option_BumpPtr bump_new_min_align(
-  SystemAlloc *backing_alloc, usize min_align);
+Option_BumpPtr bump_new_min_align(SystemAlloc *backing_alloc, usize min_align);
 
 /**
  * @brief 初始化一个已分配的 Bump 结构 (例如在栈上)。
@@ -131,9 +129,7 @@ void bump_init(Bump *self, SystemAlloc *backing_alloc);
 /**
  * @brief 初始化一个已分配的 Bump 结构 (指定最小对齐)。
  */
-void bump_init_min_align(Bump *self,
-                         SystemAlloc *backing_alloc,
-                         usize min_align);
+void bump_init_min_align(Bump *self, SystemAlloc *backing_alloc, usize min_align);
 
 /**
  * @brief 销毁 Arena，释放其分配的所有内存块。
@@ -171,13 +167,8 @@ usize bump_get_allocated_bytes(const Bump *self);
  * 它们返回 Option，宏则负责 panic。
  */
 Option_anyptr bump_alloc_impl(Bump *self, Layout layout);
-Option_anyptr bump_realloc_impl(Bump *self,
-                                anyptr old_ptr,
-                                Layout old_layout,
-                                Layout new_layout);
-void bump_release_impl(Bump *self,
-                       anyptr ptr,
-                       Layout layout);
+Option_anyptr bump_realloc_impl(Bump *self, anyptr old_ptr, Layout old_layout, Layout new_layout);
+void bump_release_impl(Bump *self, anyptr ptr, Layout layout);
 
 /*
  * ===================================================================
@@ -187,45 +178,39 @@ void bump_release_impl(Bump *self,
 
 /* --- 核心 Trait Impl --- */
 
-#define BUMP_ALLOC(self_ptr, layout)                       \
-  ({                                                       \
-    Option_anyptr __opt =                                  \
-      bump_alloc_impl(self_ptr, layout);                   \
-    if (__opt.kind == NONE)                                \
-    {                                                      \
-      panic("Bump allocation failed");                     \
-    }                                                      \
-    __opt.value.some;                                      \
+#define BUMP_ALLOC(self_ptr, layout)                                                               \
+  ({                                                                                               \
+    Option_anyptr __opt = bump_alloc_impl(self_ptr, layout);                                       \
+    if (__opt.kind == NONE)                                                                        \
+    {                                                                                              \
+      panic("Bump allocation failed");                                                             \
+    }                                                                                              \
+    __opt.value.some;                                                                              \
   })
 
-#define BUMP_REALLOC(                                      \
-  self_ptr, old_ptr, old_layout, new_layout)               \
-  ({                                                       \
-    Option_anyptr __opt = bump_realloc_impl(               \
-      self_ptr, old_ptr, old_layout, new_layout);          \
-    if (__opt.kind == NONE)                                \
-    {                                                      \
-      panic("Bump reallocation failed");                   \
-    }                                                      \
-    __opt.value.some;                                      \
+#define BUMP_REALLOC(self_ptr, old_ptr, old_layout, new_layout)                                    \
+  ({                                                                                               \
+    Option_anyptr __opt = bump_realloc_impl(self_ptr, old_ptr, old_layout, new_layout);            \
+    if (__opt.kind == NONE)                                                                        \
+    {                                                                                              \
+      panic("Bump reallocation failed");                                                           \
+    }                                                                                              \
+    __opt.value.some;                                                                              \
   })
 
-#define BUMP_RELEASE(self_ptr, ptr, layout)                \
-  bump_release_impl(self_ptr, ptr, layout) /* (no-op) */
+#define BUMP_RELEASE(self_ptr, ptr, layout) bump_release_impl(self_ptr, ptr, layout) /* (no-op) */
 
-#define BUMP_ZALLOC(self_ptr, layout)                      \
-  ({                                                       \
-    anyptr __ptr = BUMP_ALLOC(self_ptr, layout);           \
-    memset(__ptr, 0, (layout).size);                       \
-    __ptr;                                                 \
+#define BUMP_ZALLOC(self_ptr, layout)                                                              \
+  ({                                                                                               \
+    anyptr __ptr = BUMP_ALLOC(self_ptr, layout);                                                   \
+    memset(__ptr, 0, (layout).size);                                                               \
+    __ptr;                                                                                         \
   })
 
 /* --- 扩展 Trait Impl --- */
 
 #define BUMP_RESET(self_ptr) bump_reset(self_ptr)
 
-#define BUMP_SET_LIMIT(self_ptr, limit)                    \
-  bump_set_allocation_limit(self_ptr, limit)
+#define BUMP_SET_LIMIT(self_ptr, limit) bump_set_allocation_limit(self_ptr, limit)
 
-#define BUMP_GET_ALLOCATED(self_ptr)                       \
-  bump_get_allocated_bytes(self_ptr)
+#define BUMP_GET_ALLOCATED(self_ptr) bump_get_allocated_bytes(self_ptr)

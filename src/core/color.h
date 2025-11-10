@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 /*
  * Copyright (C) 2025 Karesis
  *
@@ -105,8 +104,7 @@ typedef struct color24_t
 /**
  * @brief (内部) 线程局部暂存缓冲区。
  */
-static thread_local char
-  g_color_scratch_buf[COLOR_SCRATCH_SIZE];
+static thread_local char g_color_scratch_buf[COLOR_SCRATCH_SIZE];
 
 /**
  * @brief (内部) 缓冲区中当前的位置。
@@ -165,8 +163,7 @@ fg(Color24 c)
 {
   // 栈上临时缓冲区
   char temp_buf[32];
-  snprintf(
-    temp_buf, 32, "\033[38;2;%u;%u;%um", c.r, c.g, c.b);
+  snprintf(temp_buf, 32, "\033[38;2;%u;%u;%um", c.r, c.g, c.b);
 
   // "分配" 到暂存区并返回 `str`
   return color_scratch_alloc(temp_buf);
@@ -182,8 +179,7 @@ static inline str
 bg(Color24 c)
 {
   char temp_buf[32];
-  snprintf(
-    temp_buf, 32, "\033[48;2;%u;%u;%um", c.r, c.g, c.b);
+  snprintf(temp_buf, 32, "\033[48;2;%u;%u;%um", c.r, c.g, c.b);
   return color_scratch_alloc(temp_buf);
 }
 

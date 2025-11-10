@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 /*
  * Copyright (C) 2025 Karesis
  *
@@ -139,8 +138,7 @@ idlist_empty(const idlist *head)
  * @brief 获取链表中特定条目的宏
  * 这是 container_of 的一个特化版本，专门用于 idlist。
  */
-#define idlist_entry(ptr, type, member)                    \
-  container_of(ptr, type, member)
+#define idlist_entry(ptr, type, member) container_of(ptr, type, member)
 
 /**
  * @brief 遍历链表 (正向)
@@ -148,9 +146,8 @@ idlist_empty(const idlist *head)
  * @param iter_node 用于迭代的 idlist* 临时变量 (如 struct
  * idlist *node)
  */
-#define idlist_for_each(head, iter_node)                   \
-  for ((iter_node) = (head)->next; (iter_node) != (head);  \
-       (iter_node) = (iter_node)->next)
+#define idlist_for_each(head, iter_node)                                                           \
+  for ((iter_node) = (head)->next; (iter_node) != (head); (iter_node) = (iter_node)->next)
 
 /**
  * @brief 遍历链表 (安全版，允许在遍历时删除节点)
@@ -159,9 +156,6 @@ idlist_empty(const idlist *head)
  * @param temp_node 另一个 idlist* 临时变量，用于暂存 next
  * 节点
  */
-#define idlist_for_each_safe(head, iter_node, temp_node)   \
-  for ((iter_node) = (head)->next,                         \
-      (temp_node) = (iter_node)->next;                     \
-       (iter_node) != (head);                              \
-       (iter_node) = (temp_node),                          \
-      (temp_node) = (iter_node)->next)
+#define idlist_for_each_safe(head, iter_node, temp_node)                                           \
+  for ((iter_node) = (head)->next, (temp_node) = (iter_node)->next; (iter_node) != (head);         \
+       (iter_node) = (temp_node), (temp_node) = (iter_node)->next)

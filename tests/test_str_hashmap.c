@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #include <core/mem/sysalc.h>
 #include <core/option.h>
 #include <std/hashmap.h>
@@ -25,13 +24,7 @@
 #include <string.h> // For Test 5 (strcpy)
 
 // 实例化... (保持不变)
-DEFINE_HASHMAP(StrMap,
-               str,
-               u64,
-               SystemAlloc,
-               SYSTEM,
-               hash_fn_str,
-               cmp_fn_str);
+DEFINE_HASHMAP(StrMap, str, u64, SystemAlloc, SYSTEM, hash_fn_str, cmp_fn_str);
 
 int
 main(void)
@@ -48,41 +41,32 @@ main(void)
 
   Option_StrMap_V val = StrMap_get(map, "key1");
   TEST_ASSERT(ois_some(val), "GET: 'key1' not found");
-  TEST_ASSERT(oexpect(val, "GET: val was None") == 100,
-              "GET: Value for 'key1' was not 100");
+  TEST_ASSERT(oexpect(val, "GET: val was None") == 100, "GET: Value for 'key1' was not 100");
 
   val = StrMap_get(map, "key2");
   TEST_ASSERT(ois_some(val), "GET: 'key2' not found");
-  TEST_ASSERT(oexpect(val, "GET: val was None") == 200,
-              "GET: Value for 'key2' was not 200");
+  TEST_ASSERT(oexpect(val, "GET: val was None") == 200, "GET: Value for 'key2' was not 200");
   TEST_ASSERT(map->count == 2, "Count was not 2");
 
   // --- Test 2: Get Non-Existent Key ---
   val = StrMap_get(map, "non-existent-key");
-  TEST_ASSERT(ois_none(val),
-              "GET: Non-existent key was found");
+  TEST_ASSERT(ois_none(val), "GET: Non-existent key was found");
 
   // --- Test 3: Update Value ---
   StrMap_put(map, "key1", 999);
-  TEST_ASSERT(map->count == 2,
-              "Count changed after update");
+  TEST_ASSERT(map->count == 2, "Count changed after update");
 
   val = StrMap_get(map, "key1");
-  TEST_ASSERT(ois_some(val),
-              "UPDATE: 'key1' not found after update");
-  TEST_ASSERT(oexpect(val, "UPDATE: val was None") == 999,
-              "UPDATE: Value was not 999");
+  TEST_ASSERT(ois_some(val), "UPDATE: 'key1' not found after update");
+  TEST_ASSERT(oexpect(val, "UPDATE: val was None") == 999, "UPDATE: Value was not 999");
 
   // --- Test 4: Delete Key ---
   bool deleted = StrMap_delete(map, "key2");
-  TEST_ASSERT(deleted,
-              "DELETE: Delete returned false for 'key2'");
-  TEST_ASSERT(map->count == 1,
-              "Count was not 1 after delete");
+  TEST_ASSERT(deleted, "DELETE: Delete returned false for 'key2'");
+  TEST_ASSERT(map->count == 1, "Count was not 1 after delete");
 
   val = StrMap_get(map, "key2");
-  TEST_ASSERT(ois_none(val),
-              "DELETE: 'key2' was found after delete");
+  TEST_ASSERT(ois_none(val), "DELETE: 'key2' was found after delete");
 
   // --- Test 5: 验证 cmp_fn_str (内容比较) ---
   char stack_key[20];
@@ -91,10 +75,8 @@ main(void)
   const str p_stack_key = stack_key;
   val = StrMap_get(map, p_stack_key);
 
-  TEST_ASSERT(ois_some(val),
-              "CMP_FN: Get failed using stack_key 'key1'");
-  TEST_ASSERT(oexpect(val, "CMP_FN: val was None") == 999,
-              "CMP_FN: Value was not 999");
+  TEST_ASSERT(ois_some(val), "CMP_FN: Get failed using stack_key 'key1'");
+  TEST_ASSERT(oexpect(val, "CMP_FN: val was None") == 999, "CMP_FN: Value was not 999");
 
   StrMap_free(map);
   SUITE_END();

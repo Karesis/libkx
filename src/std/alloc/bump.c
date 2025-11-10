@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 /*
  * Copyright (C) 2025 Karesis
  *
@@ -62,7 +61,7 @@
  */
 #include <core/msg/asrt.h> // L3 Assertions (asrt, asrt_msg)
 #include <core/option.h>   // L1 Option (Some, None, .kind)
-#include <core/type.h> // L0 Types (usize, byte, anyptr, ...)
+#include <core/type.h>     // L0 Types (usize, byte, anyptr, ...)
 
 /*
  * 依赖的 C 标准库
@@ -93,10 +92,8 @@ round_down_to(uptr n, usize divisor)
 }
 
 #define CHUNK_ALIGN 16
-#define FOOTER_SIZE                                        \
-  (round_up_to(sizeof(ChunkFooter), CHUNK_ALIGN))
-#define DEFAULT_CHUNK_SIZE_WITHOUT_FOOTER                  \
-  (4096 - FOOTER_SIZE)
+#define FOOTER_SIZE (round_up_to(sizeof(ChunkFooter), CHUNK_ALIGN))
+#define DEFAULT_CHUNK_SIZE_WITHOUT_FOOTER (4096 - FOOTER_SIZE)
 
 /* --- 哨兵 (Sentinel) 空 Chunk --- */
 static ChunkFooter EMPTY_CHUNK_SINGLETON;
@@ -107,12 +104,10 @@ get_empty_chunk()
 {
   if (!EMPTY_CHUNK_INITIALIZED)
   {
-    EMPTY_CHUNK_SINGLETON.data =
-      (byte *)&EMPTY_CHUNK_SINGLETON;
+    EMPTY_CHUNK_SINGLETON.data = (byte *)&EMPTY_CHUNK_SINGLETON;
     EMPTY_CHUNK_SINGLETON.chunk_size = 0;
     EMPTY_CHUNK_SINGLETON.prev = &EMPTY_CHUNK_SINGLETON;
-    EMPTY_CHUNK_SINGLETON.ptr =
-      (byte *)&EMPTY_CHUNK_SINGLETON;
+    EMPTY_CHUNK_SINGLETON.ptr = (byte *)&EMPTY_CHUNK_SINGLETON;
     EMPTY_CHUNK_SINGLETON.allocated_bytes = 0;
     EMPTY_CHUNK_INITIALIZED = true;
   }
@@ -147,25 +142,19 @@ dealloc_chunk_list(Bump *bump, ChunkFooter *footer)
     SYSTEM_RELEASE(bump->backing_alloc,
                    footer->data,
                    /* (我们必须重建 layout 来释放) */
-                   layout_from_size_align(
-                     footer->chunk_size, CHUNK_ALIGN));
+                   layout_from_size_align(footer->chunk_size, CHUNK_ALIGN));
 
     footer = prev;
   }
 }
 
 static ChunkFooter *
-new_chunk(Bump *bump,
-          usize new_size_without_footer,
-          usize align,
-          ChunkFooter *prev)
+new_chunk(Bump *bump, usize new_size_without_footer, usize align, ChunkFooter *prev)
 {
-  new_size_without_footer =
-    round_up_to(new_size_without_footer, CHUNK_ALIGN);
+  new_size_without_footer = round_up_to(new_size_without_footer, CHUNK_ALIGN);
 
   usize alloc_size;
-  if (__builtin_add_overflow(
-        new_size_without_footer, FOOTER_SIZE, &alloc_size))
+  if (__builtin_add_overflow(new_size_without_footer, FOOTER_SIZE, &alloc_size))
   {
     return NULL; // OOM
   }
@@ -187,18 +176,15 @@ new_chunk(Bump *bump,
   }
   byte *data = (byte *)opt.value.some;
 
-  ChunkFooter *footer_ptr =
-    (ChunkFooter *)(data + new_size_without_footer);
+  ChunkFooter *footer_ptr = (ChunkFooter *)(data + new_size_without_footer);
 
   footer_ptr->data = data;
   footer_ptr->chunk_size = alloc_size;
   footer_ptr->prev = prev;
-  footer_ptr->allocated_bytes =
-    prev->allocated_bytes + new_size_without_footer;
+  footer_ptr->allocated_bytes = prev->allocated_bytes + new_size_without_footer;
 
   uptr ptr_start = (uptr)footer_ptr;
-  footer_ptr->ptr =
-    (byte *)round_down_to(ptr_start, bump->min_align);
+  footer_ptr->ptr = (byte *)round_down_to(ptr_start, bump->min_align);
 
   asrt(footer_ptr->ptr >= footer_ptr->data);
 
@@ -219,29 +205,22 @@ alloc_layout_slow(Bump *bump, Layout layout)
   usize prev_usable_size = 0;
   if (!chunk_is_empty(current_footer))
   {
-    prev_usable_size =
-      current_footer->chunk_size - FOOTER_SIZE;
+    prev_usable_size = current_footer->chunk_size - FOOTER_SIZE;
   }
 
   usize new_size_without_footer;
-  if (__builtin_mul_overflow(
-        prev_usable_size, 2, &new_size_without_footer))
+  if (__builtin_mul_overflow(prev_usable_size, 2, &new_size_without_footer))
   {
     new_size_without_footer = SIZE_MAX;
   }
 
-  if (new_size_without_footer <
-      DEFAULT_CHUNK_SIZE_WITHOUT_FOOTER)
+  if (new_size_without_footer < DEFAULT_CHUNK_SIZE_WITHOUT_FOOTER)
   {
-    new_size_without_footer =
-      DEFAULT_CHUNK_SIZE_WITHOUT_FOOTER;
+    new_size_without_footer = DEFAULT_CHUNK_SIZE_WITHOUT_FOOTER;
   }
 
-  usize requested_align = (layout.align > bump->min_align)
-                            ? layout.align
-                            : bump->min_align;
-  usize requested_size =
-    round_up_to(layout.size, requested_align);
+  usize requested_align = (layout.align > bump->min_align) ? layout.align : bump->min_align;
+  usize requested_size = round_up_to(layout.size, requested_align);
 
   if (new_size_without_footer < requested_size)
   {
@@ -252,8 +231,7 @@ alloc_layout_slow(Bump *bump, Layout layout)
   {
     usize allocated = current_footer->allocated_bytes;
     usize limit = bump->allocation_limit;
-    usize remaining =
-      (limit > allocated) ? (limit - allocated) : 0;
+    usize remaining = (limit > allocated) ? (limit - allocated) : 0;
 
     if (new_size_without_footer > remaining)
     {
@@ -265,18 +243,10 @@ alloc_layout_slow(Bump *bump, Layout layout)
     }
   }
 
-  usize chunk_align = (layout.align > CHUNK_ALIGN)
-                        ? layout.align
-                        : CHUNK_ALIGN;
-  chunk_align = (chunk_align > bump->min_align)
-                  ? chunk_align
-                  : bump->min_align;
+  usize chunk_align = (layout.align > CHUNK_ALIGN) ? layout.align : CHUNK_ALIGN;
+  chunk_align = (chunk_align > bump->min_align) ? chunk_align : bump->min_align;
 
-  ChunkFooter *new_footer =
-    new_chunk(bump,
-              new_size_without_footer,
-              chunk_align,
-              current_footer);
+  ChunkFooter *new_footer = new_chunk(bump, new_size_without_footer, chunk_align, current_footer);
   if (!new_footer)
   {
     return NULL; // OOM
@@ -294,32 +264,26 @@ alloc_layout_slow(Bump *bump, Layout layout)
 
   if (layout.align <= bump->min_align)
   {
-    if (__builtin_add_overflow(
-          layout.size, bump->min_align - 1, &aligned_size))
+    if (__builtin_add_overflow(layout.size, bump->min_align - 1, &aligned_size))
     {
       return NULL;
     }
     aligned_size = aligned_size & ~(bump->min_align - 1);
     usize capacity = (usize)(ptr - start);
-    asrt_msg(aligned_size <= capacity,
-             "New chunk too small!");
+    asrt_msg(aligned_size <= capacity, "New chunk too small!");
     result_ptr = ptr - aligned_size;
   }
   else
   {
-    if (__builtin_add_overflow(
-          layout.size, layout.align - 1, &aligned_size))
+    if (__builtin_add_overflow(layout.size, layout.align - 1, &aligned_size))
     {
       return NULL;
     }
     aligned_size = aligned_size & ~(layout.align - 1);
-    byte *aligned_ptr_end =
-      (byte *)round_down_to((uptr)ptr, layout.align);
-    asrt_msg(aligned_ptr_end >= start,
-             "New chunk alignment failed!");
+    byte *aligned_ptr_end = (byte *)round_down_to((uptr)ptr, layout.align);
+    asrt_msg(aligned_ptr_end >= start, "New chunk alignment failed!");
     usize capacity = (usize)(aligned_ptr_end - start);
-    asrt_msg(aligned_size <= capacity,
-             "New chunk too small!");
+    asrt_msg(aligned_size <= capacity, "New chunk too small!");
     result_ptr = aligned_ptr_end - aligned_size;
   }
 
@@ -339,14 +303,12 @@ try_alloc_layout_fast(Bump *bump, Layout layout)
   byte *result_ptr;
   usize aligned_size;
 
-  asrt_msg((chunk_is_empty(footer) ||
-            ((uptr)ptr % min_align) == 0),
+  asrt_msg((chunk_is_empty(footer) || ((uptr)ptr % min_align) == 0),
            "Bump pointer invariant broken");
 
   if (layout.align <= min_align)
   {
-    if (__builtin_add_overflow(
-          layout.size, min_align - 1, &aligned_size))
+    if (__builtin_add_overflow(layout.size, min_align - 1, &aligned_size))
     {
       return NULL;
     }
@@ -360,14 +322,12 @@ try_alloc_layout_fast(Bump *bump, Layout layout)
   }
   else
   {
-    if (__builtin_add_overflow(
-          layout.size, layout.align - 1, &aligned_size))
+    if (__builtin_add_overflow(layout.size, layout.align - 1, &aligned_size))
     {
       return NULL;
     }
     aligned_size = aligned_size & ~(layout.align - 1);
-    byte *aligned_ptr_end =
-      (byte *)round_down_to((uptr)ptr, layout.align);
+    byte *aligned_ptr_end = (byte *)round_down_to((uptr)ptr, layout.align);
     if (aligned_ptr_end < start)
     {
       return NULL;
@@ -393,22 +353,16 @@ try_alloc_layout_fast(Bump *bump, Layout layout)
 /* --- 生命周期 --- */
 
 void
-bump_init_min_align(Bump *self,
-                    SystemAlloc *backing_alloc,
-                    usize min_align)
+bump_init_min_align(Bump *self, SystemAlloc *backing_alloc, usize min_align)
 {
   asrt_msg(self != NULL, "Bump pointer cannot be NULL");
-  asrt_msg(is_power_of_two(min_align),
-           "min_align must be a power of two");
-  asrt_msg(
-    min_align <= CHUNK_ALIGN,
-    "min_align cannot be larger than CHUNK_ALIGN (16)");
+  asrt_msg(is_power_of_two(min_align), "min_align must be a power of two");
+  asrt_msg(min_align <= CHUNK_ALIGN, "min_align cannot be larger than CHUNK_ALIGN (16)");
 
   self->current_chunk_footer = get_empty_chunk();
   self->allocation_limit = SIZE_MAX;
   self->min_align = min_align;
-  self->backing_alloc =
-    backing_alloc; // ** 关键: 保存支撑分配器 **
+  self->backing_alloc = backing_alloc; // ** 关键: 保存支撑分配器 **
 }
 
 void
@@ -418,8 +372,7 @@ bump_init(Bump *self, SystemAlloc *backing_alloc)
 }
 
 Option_BumpPtr
-bump_new_min_align(SystemAlloc *backing_alloc,
-                   usize min_align)
+bump_new_min_align(SystemAlloc *backing_alloc, usize min_align)
 {
   // ** 关键改动: 使用 Backing Allocator 分配 Bump 自身 **
   // (我们使用 sys_malloc，它返回 Option)
@@ -482,10 +435,8 @@ bump_reset(Bump *self)
   // 重置 *当前* chunk
   current_footer->prev = get_empty_chunk();
   uptr ptr_start = (uptr)current_footer;
-  current_footer->ptr =
-    (byte *)round_down_to(ptr_start, self->min_align);
-  usize usable_size =
-    (usize)((byte *)current_footer - current_footer->data);
+  current_footer->ptr = (byte *)round_down_to(ptr_start, self->min_align);
+  usize usable_size = (usize)((byte *)current_footer - current_footer->data);
   current_footer->allocated_bytes = usable_size;
 }
 
@@ -499,8 +450,7 @@ bump_alloc_impl(Bump *self, Layout layout)
   if (layout.size == 0)
   {
     uptr ptr = (uptr)self->current_chunk_footer->ptr;
-    return Some(anyptr,
-                (anyptr)round_down_to(ptr, layout.align));
+    return Some(anyptr, (anyptr)round_down_to(ptr, layout.align));
   }
   if (layout.align == 0 || !is_power_of_two(layout.align))
   {
@@ -536,11 +486,9 @@ bump_realloc_impl(Bump *self,
 
   if (new_layout.size == 0)
   {
-    return Some(
-      anyptr,
-      (anyptr)round_down_to(
-        (uptr)self->current_chunk_footer->ptr,
-        new_layout.align)); // 使用 new_layout.align
+    return Some(anyptr,
+                (anyptr)round_down_to((uptr)self->current_chunk_footer->ptr,
+                                      new_layout.align)); // 使用 new_layout.align
   }
 
   // Arena realloc 总是 alloc + copy
@@ -552,9 +500,7 @@ bump_realloc_impl(Bump *self,
 
   anyptr new_ptr = new_opt.value.some;
 
-  usize copy_size = (old_layout.size < new_layout.size)
-                      ? old_layout.size
-                      : new_layout.size;
+  usize copy_size = (old_layout.size < new_layout.size) ? old_layout.size : new_layout.size;
   if (copy_size > 0)
   {
     memcpy(new_ptr, old_ptr, copy_size);

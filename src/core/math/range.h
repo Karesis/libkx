@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 /*
  * Copyright (C) 2025 Karesis
  *
@@ -73,8 +72,7 @@ typedef struct Range
 static inline Range
 range(usize start, usize end)
 {
-  return (Range){.start = start,
-                 .end = (start > end ? start : end)};
+  return (Range){.start = start, .end = (start > end ? start : end)};
 }
 
 /*
@@ -91,8 +89,7 @@ range(usize start, usize end)
  * dbg("i = {}", i);
  * }
  */
-#define for_range(var, start, end)                         \
-  for (usize var = (start); var < (end); ++var)
+#define for_range(var, start, end) for (usize var = (start); var < (end); ++var)
 
 /**
  * @brief (宏) 遍历一个 Range 结构体
@@ -103,7 +100,5 @@ range(usize start, usize end)
  * dbg("i = {}", i);
  * }
  */
-#define for_range_in(var, range_obj)                       \
-  for (usize var = (range_obj).start;                      \
-       var < (range_obj).end;                              \
-       ++var)
+#define for_range_in(var, range_obj)                                                               \
+  for (usize var = (range_obj).start; var < (range_obj).end; ++var)

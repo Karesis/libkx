@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 /*
  * Copyright (C) 2025 Karesis
  *
@@ -46,8 +45,8 @@
 #include <core/mem/allocer.h> // L1 Trait
 #include <core/msg/panic.h>   // L3 panic
 #include <core/option.h>      // 引入 Option, Some, None
-#include <core/type.h> // 引入 usize, (和我们刚加的 anyptr)
-#include <stdlib.h>    // 引入 C 标准库的 malloc, free 等
+#include <core/type.h>        // 引入 usize, (和我们刚加的 anyptr)
+#include <stdlib.h>           // 引入 C 标准库的 malloc, free 等
 
 /* 1. Impl 的具体类型 (ZST - 零大小类型) */
 typedef struct SystemAlloc
@@ -155,45 +154,40 @@ sys_aligned_alloc(usize alignment, usize size)
  * (注意：我们现在必须尊重 'layout.align')
  */
 
-#define SYSTEM_ALLOC(self_ptr, layout)                     \
-  ({                                                       \
-    Option_anyptr __opt =                                  \
-      sys_aligned_alloc((layout).align, (layout).size);    \
-    if (__opt.kind == NONE)                                \
-    {                                                      \
-      panic("System alloc failed");                        \
-    }                                                      \
-    __opt.value.some;                                      \
+#define SYSTEM_ALLOC(self_ptr, layout)                                                             \
+  ({                                                                                               \
+    Option_anyptr __opt = sys_aligned_alloc((layout).align, (layout).size);                        \
+    if (__opt.kind == NONE)                                                                        \
+    {                                                                                              \
+      panic("System alloc failed");                                                                \
+    }                                                                                              \
+    __opt.value.some;                                                                              \
   })
 
 /* (sys_realloc 不支持对齐，这是一个问题，但我们暂时先用它)
  */
-#define SYSTEM_REALLOC(                                    \
-  self_ptr, old_ptr, old_layout, new_layout)               \
-  ({                                                       \
-    Option_anyptr __opt =                                  \
-      sys_realloc((old_ptr), (new_layout).size);           \
-    if (__opt.kind == NONE)                                \
-    {                                                      \
-      panic("System realloc failed");                      \
-    }                                                      \
-    __opt.value.some;                                      \
+#define SYSTEM_REALLOC(self_ptr, old_ptr, old_layout, new_layout)                                  \
+  ({                                                                                               \
+    Option_anyptr __opt = sys_realloc((old_ptr), (new_layout).size);                               \
+    if (__opt.kind == NONE)                                                                        \
+    {                                                                                              \
+      panic("System realloc failed");                                                              \
+    }                                                                                              \
+    __opt.value.some;                                                                              \
   })
 
 #define SYSTEM_RELEASE(self_ptr, ptr, layout) sys_free(ptr)
 
-#define SYSTEM_ZALLOC(self_ptr, layout)                    \
-  ({                                                       \
-    anyptr __ptr = SYSTEM_ALLOC(self_ptr, layout);         \
-    memset(__ptr, 0, (layout).size);                       \
-    __ptr;                                                 \
+#define SYSTEM_ZALLOC(self_ptr, layout)                                                            \
+  ({                                                                                               \
+    anyptr __ptr = SYSTEM_ALLOC(self_ptr, layout);                                                 \
+    memset(__ptr, 0, (layout).size);                                                               \
+    __ptr;                                                                                         \
   })
 
 /* --- 扩展 Trait (空操作/Panic) --- */
 #define SYSTEM_RESET(self_ptr) ((void)0) /* 空操作 */
 
-#define SYSTEM_SET_LIMIT(self_ptr, limit)                  \
-  ((void)0) /* 空操作 */
+#define SYSTEM_SET_LIMIT(self_ptr, limit) ((void)0) /* 空操作 */
 
-#define SYSTEM_GET_ALLOCATED(self_ptr)                     \
-  ((usize)0) /* 总是返回 0 */
+#define SYSTEM_GET_ALLOCATED(self_ptr) ((usize)0) /* 总是返回 0 */

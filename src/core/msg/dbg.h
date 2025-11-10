@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 /*
  * Copyright (C) 2025 Karesis
  *
@@ -80,17 +79,16 @@
  * // 输出: (in bright cyan) [DEBUG] (src/main.c:11)
  * Processing user: 42 (color reset)
  */
-#define dbg(fmt, ...)                                      \
-  do                                                       \
-  {                                                        \
-    format_to_file(                                        \
-      stderr, /* [升级] 1. 添加颜色 {占位符} 和 重置     \
-         {占位符} */                                    \
-      "{}[DEBUG] ({}:{}) " fmt "{}\n",                     \
-                                                           \
-      /* [升级] 2. 传入 fg() 和 reset() 作为参数 */        \
-      fg(DBG_COLOR),                                       \
-      __FILE__,                                            \
-      __LINE__ __VA_OPT__(, ) __VA_ARGS__,                 \
-      reset());                                            \
+#define dbg(fmt, ...)                                                                              \
+  do                                                                                               \
+  {                                                                                                \
+    format_to_file(stderr, /* [升级] 1. 添加颜色 {占位符} 和 重置                            \
+                      {占位符} */                                                               \
+                   "{}[DEBUG] ({}:{}) " fmt "{}\n",                                                \
+                                                                                                   \
+                   /* [升级] 2. 传入 fg() 和 reset() 作为参数 */                                   \
+                   fg(DBG_COLOR),                                                                  \
+                   __FILE__,                                                                       \
+                   __LINE__ __VA_OPT__(, ) __VA_ARGS__,                                            \
+                   reset());                                                                       \
   } while (0)

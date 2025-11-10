@@ -17,7 +17,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 /*
  * Copyright (C) 2025 Karesis
  *
@@ -87,47 +86,40 @@
 /**
  * @brief (Trait API) 静态分发到 PREFIX_ALLOC
  */
-#define ALLOC(Prefix, self_ptr, layout)                    \
-  __ALLOC_CONCAT(Prefix, _ALLOC)((self_ptr), (layout))
+#define ALLOC(Prefix, self_ptr, layout) __ALLOC_CONCAT(Prefix, _ALLOC)((self_ptr), (layout))
 
 /**
  * @brief (Trait API) 静态分发到 PREFIX_REALLOC
  */
-#define REALLOC(                                           \
-  Prefix, self_ptr, old_ptr, old_layout, new_layout)       \
-  __ALLOC_CONCAT(Prefix, _REALLOC)(                        \
-    (self_ptr), (old_ptr), (old_layout), (new_layout))
+#define REALLOC(Prefix, self_ptr, old_ptr, old_layout, new_layout)                                 \
+  __ALLOC_CONCAT(Prefix, _REALLOC)((self_ptr), (old_ptr), (old_layout), (new_layout))
 
 /**
  * @brief (Trait API) 静态分发到 PREFIX_RELEASE
  */
-#define RELEASE(Prefix, self_ptr, ptr, layout)             \
-  __ALLOC_CONCAT(Prefix,                                   \
-                 _RELEASE)((self_ptr), (ptr), (layout))
+#define RELEASE(Prefix, self_ptr, ptr, layout)                                                     \
+  __ALLOC_CONCAT(Prefix, _RELEASE)((self_ptr), (ptr), (layout))
 
 /**
  * @brief (Trait API) 静态分发到 PREFIX_ZALLOC
  * (分配清零的内存)
  */
-#define ZALLOC(Prefix, self_ptr, layout)                   \
-  __ALLOC_CONCAT(Prefix, _ZALLOC)((self_ptr), (layout))
+#define ZALLOC(Prefix, self_ptr, layout) __ALLOC_CONCAT(Prefix, _ZALLOC)((self_ptr), (layout))
 
 /* --- 扩展 Trait 分发器 --- */
 
 /**
  * @brief (Trait API) 静态分发到 PREFIX_RESET
  */
-#define ALLOC_RESET(Prefix, self_ptr)                      \
-  __ALLOC_CONCAT(Prefix, _RESET)((self_ptr))
+#define ALLOC_RESET(Prefix, self_ptr) __ALLOC_CONCAT(Prefix, _RESET)((self_ptr))
 
 /**
  * @brief (Trait API) 静态分发到 PREFIX_SET_LIMIT
  */
-#define ALLOC_SET_LIMIT(Prefix, self_ptr, limit)           \
+#define ALLOC_SET_LIMIT(Prefix, self_ptr, limit)                                                   \
   __ALLOC_CONCAT(Prefix, _SET_LIMIT)((self_ptr), (limit))
 
 /**
  * @brief (Trait API) 静态分发到 PREFIX_GET_ALLOCATED
  */
-#define ALLOC_GET_ALLOCATED(Prefix, self_ptr)              \
-  __ALLOC_CONCAT(Prefix, _GET_ALLOCATED)((self_ptr))
+#define ALLOC_GET_ALLOCATED(Prefix, self_ptr) __ALLOC_CONCAT(Prefix, _GET_ALLOCATED)((self_ptr))
