@@ -22,7 +22,8 @@ TARGET_EXTS = {".c", ".h"}
 # 确保使用正斜杠 '/' 作为路径分隔符。
 # [!!] 如果你引入了第三方代码，请在此处添加路径。
 THIRD_PARTY_PATHS = {
-    # 示例: "src/core/third_party/some_lib.h",
+    "src/std/hash/xxhash.h",
+    "src/std/hash/xxhash.c",
 }
 
 # -----------------------------------------------------------------
