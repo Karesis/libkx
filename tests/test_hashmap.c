@@ -10,7 +10,7 @@ DEFINE_HASHMAP(U64Map,
                SystemAlloc,
                SYSTEM,
                hash_fn_u64,
-               cmp_fn_u64);
+               cmp_fn_u64)
 
 // 2. 编写测试套件
 int
