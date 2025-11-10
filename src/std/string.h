@@ -20,11 +20,6 @@
  * <https://www.gnu.org/licenses/>.
  */
 
-/*
- * Copyright 2025 Karesis
- * (Apache License Header)
- */
-
 #pragma once
 
 // ** 关键改动：包含 L4 集合原语 **
