@@ -64,6 +64,7 @@
                       */
 #define TYPE_CHAR 13 /* 对应 `char` */
 #define TYPE_ANY 14  /* 对应 `void *` (用于打印指针地址) */
+#define TYPE_VSTR 15 /* 对应 `vstr` (ptr, len) */
 
 /*
  * ===================================================================
@@ -90,6 +91,8 @@
     str: TYPE_STR, /* const char* */                                                               \
     char *: TYPE_MUT_STR,                                                                          \
     char: TYPE_CHAR,                                                                               \
+    vstr: TYPE_VSTR,                                                                               \
+    const vstr: TYPE_VSTR,                                                                         \
     void *: TYPE_ANY,                                                                              \
     default: TYPE_NONE)
 

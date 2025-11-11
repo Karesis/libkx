@@ -169,6 +169,21 @@ vformat_engine(void *sink,
         break;
       }
 
+      case TYPE_VSTR: {
+        // vstr 是一个 struct，按值传递
+        vstr data = va_arg(args, vstr);
+        if (data.ptr != NULL)
+        {
+          push_b(sink, data.ptr, data.len);
+        }
+        else
+        {
+          const char *null_msg = "(null vstr)";
+          push_b(sink, null_msg, strlen(null_msg));
+        }
+        break;
+      }
+
       /* --- 错误处理 --- */
       case TYPE_NONE:
       default: {
