@@ -65,7 +65,7 @@ typedef enum OptionKind
 #define Some(Name, ...) __OPTION_SOME_PASTE(Name, __VA_ARGS__)
 
 /**
- * @brief (升级) None 构造器
+ * @brief None 构造器
  * @param Name Option 的名称 (例如: u64, u64_ptr)
  */
 #define __OPTION_NONE_PASTE(Name)                                                                  \
@@ -75,7 +75,7 @@ typedef enum OptionKind
   }
 #define None(Name) __OPTION_NONE_PASTE(Name)
 
-/* --- 检查与解包 (功能性) --- */
+/* --- 检查与解包  --- */
 
 #define oexpect(opt, msg)                                                                          \
   ({                                                                                               \
@@ -103,10 +103,10 @@ typedef enum OptionKind
     ois_some(__opt_tmp) ? __opt_tmp.value.some : (func)();                                         \
   })
 
-/* --- 适配器 (功能性) --- */
+/* --- 适配器 --- */
 
 /**
- * @brief (升级) omap 宏
+ * @brief omap 宏
  * @param Out_Name (以前是 out_type)
  * 目标 Option 的 *名称* (例如: u64)
  */
@@ -121,7 +121,7 @@ typedef enum OptionKind
 #define omap(Out_Name, opt_in, var, ...) __OPTION_MAP_PASTE(Out_Name, opt_in, var, __VA_ARGS__)
 
 /**
- * @brief (升级) oand_then 宏
+ * @brief oand_then 宏
  * @param Out_Name (以前是 out_type)
  * 目标 Option 的 *名称* (例如: u64)
  */
@@ -136,5 +136,5 @@ typedef enum OptionKind
 #define oand_then(Out_Name, opt_in, var, ...)                                                      \
   __OPTION_AND_THEN_PASTE(Out_Name, opt_in, var, __VA_ARGS__)
 
-/* --- (升级) 常用的 option 类型 --- */
+/* --- 常用的 option 类型 --- */
 DEFINE_OPTION(anyptr, anyptr);
