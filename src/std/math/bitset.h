@@ -85,7 +85,7 @@ bitset_bit_mask(usize bit)
     if (bs == NULL)                                                                                \
       return;                                                                                      \
     Layout word_layout = LAYOUT_OF_ARRAY(u64, bs->num_words);                                      \
-                                                                                                   \
+    (void)word_layout;                                                                             \
     RELEASE(AllocPrefix, bs->alloc_state, bs->words, word_layout);                                 \
                                                                                                    \
     sys_free(bs);                                                                                  \
