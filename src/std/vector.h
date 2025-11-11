@@ -121,6 +121,7 @@
     if (new_cap <= self->cap)                                                                      \
       return;                                                                                      \
     Layout old_layout = LAYOUT_OF_ARRAY(T, self->cap);                                             \
+    (void)old_layout;                                                                              \
     Layout new_layout = LAYOUT_OF_ARRAY(T, new_cap);                                               \
                                                                                                    \
     /* * 静态分发：REALLOC(SYSTEM, ...) */                                                         \
