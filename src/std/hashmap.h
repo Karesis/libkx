@@ -294,7 +294,7 @@ cmp_fn_str(const str *a, const str *b)
     /* 1. 释放 entries 数组 */                                                                     \
     /* <<< FIX: 使用 LAYOUT_OF_ARRAY 代替 layout_array */                                          \
     Layout layout = LAYOUT_OF_ARRAY(sizeof(T_Name##_Entry), self->capacity);                       \
-    /* <<< FIX: 使用 RELEASE Trait 代替 _release */                                                \
+    (void)layout;                                                                                  \
     RELEASE(A_Prefix, self->allocer, self->entries, layout);                                       \
                                                                                                    \
     /* 2. 释放 HashMap 结构体 */                                                                   \
@@ -377,7 +377,7 @@ cmp_fn_str(const str *a, const str *b)
                                                                                                    \
     /* 释放旧表 (注意: 你的原代码这里是正确的!) */                                                 \
     Layout old_layout = LAYOUT_OF_ARRAY(sizeof(T_Name##_Entry), old_capacity);                     \
-    /* <<< FIX: 使用 RELEASE Trait 代替 _release */                                                \
+    (void)old_layout;                                                                              \
     RELEASE(A_Prefix, self->allocer, old_entries, old_layout);                                     \
     return true;                                                                                   \
   }                                                                                                \
