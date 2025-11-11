@@ -82,7 +82,7 @@ DefaultHasher_new(void)
  * @brief (Impl) Hasher Trait - write
  * 映射到 xxHash 的 update 函数。
  */
-void
+static inline void
 DefaultHasher_write(DefaultHasher *self, const void *bytes, usize len)
 {
   (void)XXH64_update(&self->state, bytes, len);
@@ -92,7 +92,7 @@ DefaultHasher_write(DefaultHasher *self, const void *bytes, usize len)
  * @brief (Impl) Hasher Trait - finish
  * 映射到 xxHash 的 digest 函数。
  */
-u64
+static inline u64
 DefaultHasher_finish(const DefaultHasher *self)
 {
   return XXH64_digest(&self->state);
