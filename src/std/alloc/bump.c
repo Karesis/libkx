@@ -116,11 +116,7 @@ dealloc_chunk_list(Bump *bump, ChunkFooter *footer)
   {
     ChunkFooter *prev = footer->prev;
 
-    // ** 关键改动: 使用 Backing Allocator **
-    SYSTEM_RELEASE(bump->backing_alloc,
-                   footer->data,
-                   /* (我们必须重建 layout 来释放) */
-                   layout_from_size_align(footer->chunk_size, CHUNK_ALIGN));
+    sys_chunk_free(footer->data, footer->chunk_size);
 
     footer = prev;
   }
@@ -143,7 +139,8 @@ new_chunk(Bump *bump, usize new_size_without_footer, usize align, ChunkFooter *p
     return NULL;
   }
 
-  Option_anyptr opt = sys_aligned_alloc(align, alloc_size);
+  asrt_msg(align <= 4096, "mmap chunk alloc can't guarantee >4K alignment");
+  Option_anyptr opt = sys_chunk_alloc(alloc_size);
 
   if (opt.kind == NONE)
   {

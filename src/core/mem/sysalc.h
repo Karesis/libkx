@@ -25,6 +25,8 @@
 #include <core/option.h>      // 引入 Option, Some, None
 #include <core/type.h>        // 引入 usize, (和我们刚加的 anyptr)
 #include <stdlib.h>           // 引入 C 标准库的 malloc, free 等
+#include <sys/mman.h>         // 为了 mmap 和 munmap
+#include <unistd.h>           // 为了 sysconf 和 _SC_PAGESIZE
 
 /* 1. Impl 的具体类型 (ZST - 零大小类型) */
 typedef struct SystemAlloc
@@ -126,6 +128,36 @@ sys_aligned_alloc(usize alignment, usize size)
     return None(anyptr);
   }
   return Some(anyptr, ptr);
+}
+
+/**
+ * @brief 使用 mmap 分配一个大块 (chunk)。
+ * @note 返回的指针是页对齐的。
+ */
+static inline Option_anyptr
+sys_chunk_alloc(usize size)
+{
+  if (size == 0)
+  {
+    return None(anyptr);
+  }
+
+  void *ptr = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+
+  if (ptr == MAP_FAILED)
+  {
+    return None(anyptr);
+  }
+  return Some(anyptr, ptr);
+}
+
+/**
+ * @brief 释放一个用 sys_chunk_alloc 分配的块。
+ */
+static inline int
+sys_chunk_free(anyptr ptr, usize size)
+{
+  return munmap(ptr, size);
 }
 
 /* * 2. Impl 的契约实现
