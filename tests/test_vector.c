@@ -29,7 +29,8 @@
  */
 static SystemAlloc g_sys;
 
-DEFINE_VECTOR(Vec_i32, int, SystemAlloc, SYSTEM);
+DEFINE_VECTOR(Vec_i32, int, SystemAlloc, SYSTEM)
+
 /*
  * =s=======================================
  * 套件 1: Vector Init

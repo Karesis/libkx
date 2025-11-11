@@ -23,8 +23,7 @@
 #include <std/test/test.h>
 #include <string.h> // For Test 5 (strcpy)
 
-// 实例化... (保持不变)
-DEFINE_HASHMAP(StrMap, str, u64, SystemAlloc, SYSTEM, hash_fn_str, cmp_fn_str);
+DEFINE_HASHMAP(StrMap, str, u64, SystemAlloc, SYSTEM, hash_fn_str, cmp_fn_str)
 
 int
 main(void)
