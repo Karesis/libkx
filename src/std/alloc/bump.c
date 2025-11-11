@@ -143,9 +143,6 @@ new_chunk(Bump *bump, usize new_size_without_footer, usize align, ChunkFooter *p
     return NULL;
   }
 
-  // ** 关键改动: 使用 Backing Allocator **
-  // (我们使用 sys_aligned_alloc，它在 system.h 中返回
-  // Option)
   Option_anyptr opt = sys_aligned_alloc(align, alloc_size);
 
   if (opt.kind == NONE)
@@ -390,8 +387,8 @@ bump_free(Bump *self)
     SystemAlloc *backing_alloc = self->backing_alloc;
     bump_destroy(self);
 
-    // ** 关键改动: 使用 Backing Allocator 释放 Bump 自身 **
-    // (我们使用 sys_free，它在 system.h 中)
+    // 使用 Backing Allocator 释放 Bump 自身 **
+    // (使用 sys_free，它在 system.h 中)
     sys_free(self);
   }
 }
@@ -456,7 +453,6 @@ bump_realloc_impl(Bump *self,
                   Layout new_layout) // <-- 签名已更新
 {
   asrt_msg(self != NULL, "Bump 'self' cannot be NULL");
-
   if (old_ptr == NULL)
   {
     return bump_alloc_impl(self, new_layout);
