@@ -14,6 +14,9 @@ CPPFLAGS = -I$(SRC_DIR) -MMD -MP
 CFLAGS   = -g -Wall -Wextra -pedantic $(C_STD) -O2
 
 CFLAGS   += -mavx2
+CFLAGS   += -Wno-gnu-statement-expression
+CFLAGS   += -Wno-gnu-alignof-expression
+
 CPPFLAGS += -DXXH_VECTOR=XXH_AVX2
 CPPFLAGS += -DXXH_STATIC_LINKING_ONLY=1
 CPPFLAGS += -DXXH_INLINE_ALL=1
