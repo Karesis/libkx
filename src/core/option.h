@@ -138,3 +138,4 @@ typedef enum OptionKind
 
 /* --- 常用的 option 类型 --- */
 DEFINE_OPTION(anyptr, anyptr);
+DEFINE_OPTION(str, str);
